@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backlog — Criador de Banners</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3347;
+    --text: #e2e4ef;
+    --muted: #7b8099;
+    --accent: #5c6bff;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --cyan: #22d3ee;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
+
+  .wrapper { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  h1 { font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 40px; }
+
+  /* ── SEÇÃO DE PRIORIDADE ── */
+  .priority-box {
+    background: linear-gradient(135deg, #1e2340 0%, #1a1d2e 100%);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+  }
+  .priority-box h2 { font-size: 17px; color: var(--cyan); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+  .priority-table { width: 100%; border-collapse: collapse; }
+  .priority-table th { text-align: left; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: 0 12px 10px; }
+  .priority-table td { padding: 10px 12px; border-top: 1px solid var(--border); font-size: 14px; }
+  .priority-table tr:hover td { background: rgba(255,255,255,.03); }
+  .medal { font-size: 20px; }
+  .tag-item { font-weight: 600; color: #fff; }
+  .tag-why { color: var(--muted); font-size: 13px; }
+
+  /* ── LEGENDA ── */
+  .legend { display: flex; flex-wrap: wrap; gap: 24px; margin-bottom: 40px; padding: 20px 24px; background: var(--surface); border-radius: 10px; border: 1px solid var(--border); }
+  .legend-group h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 8px; }
+  .legend-item { font-size: 13px; margin-bottom: 4px; }
+  .legend-item span { color: var(--muted); }
+
+  /* ── SEÇÃO ── */
+  .section-title {
+    font-size: 20px; font-weight: 700; color: #fff;
+    margin: 48px 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title .badge {
+    font-size: 12px; font-weight: 600; padding: 3px 10px;
+    border-radius: 20px; background: var(--surface2); color: var(--muted);
+  }
+
+  /* ── CARD ACCORDION ── */
+  details.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: border-color .15s;
+  }
+  details.card:hover { border-color: #3e4460; }
+  details.card[open] { border-color: #3e4460; }
+
+  /* Linha visível (summary) */
+  details.card > summary {
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 18px;
+    cursor: pointer;
+    list-style: none;
+    user-select: text;
+  }
+  details.card > summary::-webkit-details-marker { display: none; }
+
+  .card-code {
+    font-size: 11px; font-weight: 700; color: var(--accent);
+    background: rgba(92,107,255,.12); padding: 2px 7px; border-radius: 5px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .card-title {
+    font-size: 14px; font-weight: 600; color: #fff; flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .card-pills {
+    display: flex; gap: 6px; align-items: center; flex-shrink: 0;
+  }
+  .pill {
+    font-size: 11px; padding: 2px 8px; border-radius: 5px;
+    background: var(--surface2); color: var(--text); white-space: nowrap;
+  }
+  .pill-time { color: var(--muted); background: transparent; padding-right: 0; }
+  .card-chevron {
+    font-size: 16px; color: var(--muted); flex-shrink: 0;
+    transition: transform .2s; line-height: 1;
+  }
+  details.card[open] > summary .card-chevron { transform: rotate(90deg); }
+
+  /* Conteúdo expandido */
+  .card-body {
+    padding: 0 18px 16px;
+    border-top: 1px solid var(--border);
+    margin-top: 0;
+  }
+  .card-badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 10px; align-items: center; }
+  .time-info { display: flex; gap: 14px; font-size: 12px; color: var(--muted); }
+  .time-info span { display: flex; align-items: center; gap: 4px; }
+  .card-desc { color: #b0b5cc; font-size: 14px; margin-bottom: 12px; }
+  .card-changes { list-style: none; padding: 0; }
+  .card-changes li { font-size: 13.5px; color: #c5c9de; padding: 4px 0 4px 18px; position: relative; }
+  .card-changes li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-size: 12px; top: 5px; }
+  .card-warn { margin-top: 10px; padding: 8px 12px; background: rgba(239,68,68,.08); border-left: 3px solid #ef4444; border-radius: 0 6px 6px 0; font-size: 13px; color: #fca5a5; }
+  .card-warn.yellow { background: rgba(234,179,8,.08); border-left-color: #eab308; color: #fde047; }
+
+  /* ── CARD FEITO ── */
+  details.card.done {
+    border-color: #1a3a2a;
+    background: #111a15;
+    opacity: .75;
+  }
+  details.card.done .card-title { text-decoration: line-through; color: var(--muted); }
+  details.card.done .card-code { background: rgba(34,197,94,.12); color: var(--green); }
+  .done-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700; color: var(--green);
+    background: rgba(34,197,94,.12); border-radius: 5px; padding: 2px 7px;
+    flex-shrink: 0;
+  }
+  .tag-item.done { text-decoration: line-through; color: var(--muted); }
+
+  /* ── CARD TESTADO ── */
+  details.card.tested {
+    border-color: #3a2e10;
+    background: #1a1808;
+  }
+  details.card.tested .card-code { background: rgba(234,179,8,.12); color: #eab308; }
+  .tested-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700; color: #eab308;
+    background: rgba(234,179,8,.12); border-radius: 5px; padding: 2px 7px;
+    flex-shrink: 0;
+  }
+
+  /* ── CARD DESCARTADO ── */
+  details.card.discarded {
+    border-color: #3a1010;
+    background: #1a0808;
+    opacity: .7;
+  }
+  details.card.discarded .card-title { text-decoration: line-through; color: var(--muted); }
+  details.card.discarded .card-code { background: rgba(239,68,68,.12); color: #ef4444; }
+
+  /* ── SEPARADOR ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* ── NOTA FINAL ── */
+  .note { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; color: var(--muted); font-size: 13px; margin-top: 48px; }
+  .note strong { color: var(--text); }
+
+  @media (max-width: 600px) {
+    .card-pills { display: none; }
+    .legend { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <h1>Backlog — Criador de Banners</h1>
+  <p class="subtitle">Atualizado em 08/04/2026 · v33 — zoom proporcional, strip de setas, modal de avisos</p>
+
+  <!-- PRIORIDADE -->
+  <div class="priority-box">
+    <h2>⚡ O que eu faria primeiro — por impacto real</h2>
+    <table class="priority-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Item</th>
+          <th>Por quê agora</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="medal">✅</span></td>
+          <td class="tag-item done">U1 — Campos condicionais</td>
+          <td class="tag-why">Implementado — TAG, CTA e campos ocultos por layout</td>
+        </tr>
+        <tr>
+          <td><span class="medal">🥈</span></td>
+          <td class="tag-item">S1 — Aviso ao trocar layout</td>
+          <td class="tag-why">🟢 ~1h30 — evita perder trabalho sem querer</td>
+        </tr>
+        <tr>
+          <td><span class="medal">🥉</span></td>
+          <td class="tag-item">S6 — Export JPG + clipboard</td>
+          <td class="tag-why">🟢 ~2h — você usa isso todo dia</td>
+        </tr>
+        <tr>
+          <td><span class="medal">✅</span></td>
+          <td class="tag-item done">N2 + N3 + S9 + S10 — Quick wins (v25)</td>
+          <td class="tag-why">Timeout imagem, log limitado, spinner galeria, fallback thumbnail</td>
+        </tr>
+        <tr>
+          <td><span class="medal">✅</span></td>
+          <td class="tag-item done">Fix A — Nome do arquivo (modal Salvar como)</td>
+          <td class="tag-why">Modal aparece ao renderizar, download automático</td>
+        </tr>
+        <tr>
+          <td><span class="medal">✅</span></td>
+          <td class="tag-item done">S6 — Export JPG + nome + clipboard (v25)</td>
+          <td class="tag-why">Modal Salvar como com toggle PNG/JPG e botão Copiar</td>
+        </tr>
+        <tr>
+          <td><span class="medal">✅</span></td>
+          <td class="tag-item done">Sprint Performance v27 — P1·P2·P3·S2·S3·S14·N1·N4·N5 + Bug flip+olhos</td>
+          <td class="tag-why">Cache imagens, RAF, downscale, validação, race condition, glass canvas, chunks, flip</td>
+        </tr>
+        <tr>
+          <td><span class="medal">✅</span></td>
+          <td class="tag-item done">Fix B + Fix C — tag icon alinhado + Offset X/Y compacto</td>
+          <td class="tag-why">icSlot centrado no pill, padRight do Figma, texto sem sobreposição, inputs 90px</td>
+        </tr>
+        <tr>
+          <td><span class="medal">✅</span></td>
+          <td class="tag-item done">v28 — GitHub Pages + variantes de layout (IS_LOCAL dual-env)</td>
+          <td class="tag-why">IS_LOCAL, _variantIndex, switchVariant, toggle + sugestão por titleLines, deploy GitHub Pages</td>
+        </tr>
+        <tr>
+          <td><span class="medal">✅</span></td>
+          <td class="tag-item done">v29 — C8 Formatação de texto: bold + cor por seleção</td>
+          <td class="tag-why">Toolbar só quando editado, bold toggle (800), cores do Figma, ranges acumulam, reset ao trocar layout</td>
+        </tr>
+        <tr>
+          <td><span class="medal">✅</span></td>
+          <td class="tag-item done">v30 — G1·G2·G3 Performance: cache de text layout + computeDynLayout 1×/frame + cache de ranges</td>
+          <td class="tag-why">_wrapCache, _rangesStyledCache, _frameCount — drag da foto fluido sem re-quebrar texto a 60fps</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);font-weight:700">próx.</td>
+          <td class="tag-item">C7</td>
+          <td class="tag-why">↔️ Resize lateral do glass box / blocoTX</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);font-weight:700">próx.</td>
+          <td class="tag-item">S1 · S8 · S7 · S12</td>
+          <td class="tag-why">🛡️ Robustez UX: isDirty, fonte não carregada, rodapé, retry de rede</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);font-weight:700">longo</td>
+          <td class="tag-item">M1 · S4 · S11</td>
+          <td class="tag-why">📱 Mobile friendly + Undo + Zoom canvas</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);font-weight:700">ideia</td>
+          <td class="tag-item">U8 · U9 · S16</td>
+          <td class="tag-why">🧠 Auto-detecção sem nomes · múltiplos tamanhos de export · Limpar reseta formatação</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- LEGENDA -->
+  <div class="legend">
+    <div class="legend-group">
+      <h3>Complexidade</h3>
+      <div class="legend-item">🟢 <strong>Simples</strong> <span>— 1–2 lugares, padrão existe</span></div>
+      <div class="legend-item">🟡 <strong>Médio</strong> <span>— múltiplos lugares, edge cases</span></div>
+      <div class="legend-item">🔴 <strong>Complexo</strong> <span>— arquitetura, múltiplas sessões</span></div>
+    </div>
+    <div class="legend-group">
+      <h3>Risco</h3>
+      <div class="legend-item">✅ <strong>Seguro</strong> <span>— aditivo, fácil reverter</span></div>
+      <div class="legend-item">⚠️ <strong>Atenção</strong> <span>— toca lógica existente, testar bem</span></div>
+      <div class="legend-item">🚨 <strong>Perigo</strong> <span>— pode quebrar layouts existentes</span></div>
+    </div>
+    <div class="legend-group">
+      <h3>Tempo</h3>
+      <div class="legend-item">🤖 <strong>Claude</strong> <span>— codifica e explica</span></div>
+      <div class="legend-item">👤 <strong>Você</strong> <span>— testa e valida visualmente</span></div>
+      <div class="legend-item">⏱️ <strong>Total</strong> <span>— soma real da sessão</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="section-title">Sugestões Claude <span class="badge">S1–S16</span></div>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Melhorias no que já existe — bugs de UX, robustez, performance e qualidade de código.</p>
+
+  <!-- S1 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S1</span>
+      <span class="card-title">Aviso ao trocar layout (isDirty)</span>
+      <span class="card-pills">
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~1h30</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Hoje, se você digitou textos, ajustou a foto e clica em outro layout — tudo some sem aviso. Sem confirmação, sem recuperação.</p>
+      <ul class="card-changes">
+        <li>Rastreia <code>isDirty = true</code> quando qualquer campo é editado</li>
+        <li>Modal de confirmação: <em>"Trocar layout descarta as edições. Continuar?"</em></li>
+        <li>Badge <code>*</code> no card ativo enquanto há edições não exportadas</li>
+        <li>Aviso ao fechar/recarregar a aba com trabalho não salvo</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S2 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">S2</span>
+      <span class="card-title">Debounce + RAF no redesenho</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v27)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">⚠️ Atenção</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">RAF gate implementado: <code>draw()</code> é limitado a 1 por frame (max 60fps). Inputs de texto usam <code>drawDebounced()</code> com 150ms de espera. Função original renomeada para <code>_drawNow()</code>.</p>
+      <ul class="card-changes">
+        <li><code>draw()</code> usa <code>requestAnimationFrame</code> com flag <code>_rafId</code> — colapsa chamadas redundantes</li>
+        <li><code>drawDebounced()</code> com 150ms para inputs de texto — evita redesenho a cada tecla</li>
+        <li>Drag da foto continua usando <code>draw()</code> direto (resposta imediata)</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S3 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">S3</span>
+      <span class="card-title">Reduzir foto ao carregar</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v27)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">⚠️ Atenção</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Fotos maiores que 2160px são reduzidas via <code>_downscaleFoto()</code> antes de guardar em memória. Imagens com canal alpha (cutouts) são preservadas na resolução original.</p>
+      <ul class="card-changes">
+        <li>Limite: <code>2160px</code> no maior eixo — equivale a 2× canvas de 1080px</li>
+        <li>Skip automático se <code>foto.isTransparent = true</code> (detectado via <code>detectaAlpha()</code>)</li>
+        <li>Downscale via canvas offscreen + <code>toBlob(jpeg, 0.95)</code> → novo <code>Image</code></li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S4 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S4</span>
+      <span class="card-title">Undo básico (Ctrl+Z)</span>
+      <span class="card-pills">
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~5h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Apagou o título por acidente, deletou a foto — sem recuperação hoje.</p>
+      <ul class="card-changes">
+        <li>Stack de histórico: snapshot do estado a cada mudança relevante (não a cada letra)</li>
+        <li>Ctrl+Z / Cmd+Z para voltar; Ctrl+Shift+Z para refazer</li>
+        <li>No mínimo: salva o estado antes de trocar de layout</li>
+      </ul>
+      <div class="card-warn yellow">⚠️ O objeto <code>foto.img</code> é um <code>Image</code> do DOM — precisa de serialização cuidadosa.</div>
+    </div>
+  </details>
+
+  <!-- S5 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S5</span>
+      <span class="card-title">Log de debug acessível na UI</span>
+      <span class="card-pills">
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~1h20</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Quando um layout não carrega, o diagnóstico está no console do DevTools — que você talvez não abra.</p>
+      <ul class="card-changes">
+        <li>Botão discreto "Ver log" no rodapé da ferramenta</li>
+        <li>Painel colapsável com os últimos 50 logs</li>
+        <li>Diagnosticar sem precisar abrir F12</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S6 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">S6</span>
+      <span class="card-title">Export: JPG, nome customizado, clipboard</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v25)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Modal "Salvar como" aparece ao clicar em Renderizar com nome, toggle de formato e botão Copiar.</p>
+      <ul class="card-changes">
+        <li>Modal com input de nome pré-preenchido pelo layout (persiste se editado manualmente)</li>
+        <li>Toggle PNG / JPG — JPG usa qualidade 0.92, extensão ajustada automaticamente</li>
+        <li>Botão "📋 Copiar" — <code>canvas.toBlob</code> + <code>ClipboardItem</code> (sempre PNG, único formato suportado pela API)</li>
+        <li>Download via link temporário JS, sem âncora permanente na sidebar</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S7 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S7</span>
+      <span class="card-title">Rodapé editável</span>
+      <span class="card-pills">
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~1h20</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">O <code>field:rodape</code> pega o texto fixo do Figma. Se o designer colocou um placeholder, aparece fixo no banner sem como trocar.</p>
+      <ul class="card-changes">
+        <li>Campo "Rodapé" aparece na UI (só se o design tem <code>field:rodape</code>)</li>
+        <li>Mesmo comportamento dos outros campos condicionais</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S8 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S8</span>
+      <span class="card-title">Aviso de fonte não carregada</span>
+      <span class="card-pills">
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~1h20</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Se a fonte do design não carrega, o banner renderiza em <code>sans-serif</code> sem nenhum aviso. Você pode exportar um banner com fonte errada sem perceber.</p>
+      <ul class="card-changes">
+        <li>Detecta quando a fonte não carregou de verdade</li>
+        <li>Warning no painel: <em>⚠️ Fonte 'Barlow' não encontrada — usando fallback</em></li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S9 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">S9</span>
+      <span class="card-title">Spinner ao clicar foto da galeria</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v25)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Card escurece com spinner animado enquanto a foto carrega. Remove o spinner ao concluir ou em caso de erro.</p>
+      <ul class="card-changes">
+        <li>CSS <code>.fig-img.loading::before/::after</code> — overlay + spin animado</li>
+        <li>Classe <code>loading</code> adicionada no clique e removida após <code>loadImg</code> resolver</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S10 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">S10</span>
+      <span class="card-title">Fallback de thumbnail quebrado</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v25)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Se o thumbnail não carrega, o card exibe ícone "Sem preview" com fundo neutro em vez de ficar vazio.</p>
+      <ul class="card-changes">
+        <li>Listener <code>onerror</code> na <code>&lt;img&gt;</code> insere div <code>.fig-broken</code> com ícone SVG</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S11 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S11</span>
+      <span class="card-title">Zoom do canvas</span>
+      <span class="card-pills">
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~3h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Canvas 1080×1080 pode ser grande demais em notebooks menores. Sem opção de reduzir a visualização.</p>
+      <ul class="card-changes">
+        <li>Slider de zoom 50%–150% via CSS <code>transform: scale</code></li>
+        <li>Botão "Fit" para ajustar automaticamente à janela</li>
+        <li>Export continua em 1080×1080 independente do zoom</li>
+      </ul>
+      <div class="card-warn yellow">⚠️ O sistema de arrastar a foto usa coordenadas do canvas — zoom precisa recalcular isso ou o drag quebra.</div>
+    </div>
+  </details>
+
+  <!-- S12 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S12</span>
+      <span class="card-title">Retry automático em erros de rede</span>
+      <span class="card-pills">
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~2h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Um timeout da API Figma resulta em falha silenciosa hoje. Sem retry, sem feedback.</p>
+      <ul class="card-changes">
+        <li>3 tentativas automáticas com 1s de intervalo</li>
+        <li>Diferencia erro de autenticação (não retenta) de erro de rede (retenta)</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S13 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S13</span>
+      <span class="card-title">Remover <code>loadedAssets</code> (código morto)</span>
+      <span class="card-pills">
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">🚨 Perigo</span>
+        <span class="pill pill-time">⏱️ ~2h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Após o refactor para PNG-por-camada, o objeto <code>loadedAssets</code> continua sendo populado mas nunca é lido. É código morto que faz chamadas desnecessárias à API Figma.</p>
+      <ul class="card-changes">
+        <li>Remove toda a lógica de <code>loadedAssets</code></li>
+        <li>Código mais limpo, menos chamadas na API</li>
+      </ul>
+      <div class="card-warn">🚨 Precisa confirmar 100% que nenhum caminho usa <code>loadedAssets</code> antes de remover. Se algo usar e passar despercebido, quebra silenciosamente.</div>
+    </div>
+  </details>
+
+  <!-- S14 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">S14</span>
+      <span class="card-title">Validação de foto no upload</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v27)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Validação completa em <code>handleFile()</code> — bloqueia formatos inválidos e arquivos gigantes, avisa sobre resolução baixa.</p>
+      <ul class="card-changes">
+        <li>Formatos aceitos: <code>image/jpeg</code>, <code>image/png</code>, <code>image/webp</code> — outros bloqueados com mensagem</li>
+        <li>Limite: 25MB — arquivo maior exibe erro antes de carregar</li>
+        <li>Aviso (não bloqueia): imagem menor que 500×500px — "pode ficar pixelada"</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S15 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S15</span>
+      <span class="card-title">Indicador visual de reflow dinâmico</span>
+      <span class="card-pills">
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~1h20</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">O <code>computeDynLayout</code> reposiciona os campos automaticamente quando o texto muda. Você não sabe que isso aconteceu.</p>
+      <ul class="card-changes">
+        <li>Flash sutil na borda do glass/blocoTX quando o reflow acontece</li>
+        <li>Ou tooltip: <em>"Layout ajustado automaticamente"</em></li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S16 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S16</span>
+      <span class="card-title">Limpar texto reseta também a formatação para fonte regular</span>
+      <span class="card-pills">
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~30min</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Hoje o botão "Limpar" apaga o texto digitado, mas mantém qualquer formatação inline (bold, cor) que o operador havia aplicado. Na próxima digitação, o texto começa com a formatação do estado anterior em vez do estilo padrão.</p>
+      <ul class="card-changes">
+        <li>Ao clicar em "Limpar", além de esvaziar o textarea, zerar os ranges de formatação (<code>styledWords = []</code>)</li>
+        <li>Restaurar também o <code>fontWeight</code> e <code>fontColor</code> para os valores originais do Figma do campo</li>
+        <li>Comportamento esperado: após Limpar, o operador começa a digitar em fonte regular, sem herdar formatação anterior</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="section-title">Bugs &amp; Robustez <span class="badge">N1–N5</span></div>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Problemas encontrados na análise do v23 — não cobertos pelo backlog anterior.</p>
+
+  <!-- N1 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">N1</span>
+      <span class="card-title">Troca rápida de layouts pode misturar elementos no canvas</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v27)</span>
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">⚠️ Atenção</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Token de sessão <code>_layoutLoadToken</code> implementado. Cada <code>selectLayout()</code> incrementa o token; após cada <code>await</code>, verifica se o token ainda é válido — se outro layout foi selecionado enquanto esperava, aborta silenciosamente.</p>
+      <ul class="card-changes">
+        <li><code>const myToken = ++_layoutLoadToken</code> no início de cada <code>selectLayout()</code></li>
+        <li>Guards após <code>await extractLayoutMeta()</code> e <code>await loadLayoutAssets()</code></li>
+        <li>Apenas o último layout clicado chega ao canvas</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- N2 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">N2</span>
+      <span class="card-title">Imagem travada pode deixar o canvas em branco para sempre</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v25)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Timeout de 15s adicionado em <code>loadImg</code>. Se a imagem não carregar no prazo, a promessa rejeita com <code>'timeout:url'</code>, o carregamento continua normalmente para as demais camadas.</p>
+      <ul class="card-changes">
+        <li><code>setTimeout 15000</code> em <code>loadImg</code> — limpa o timer em <code>onload</code>/<code>onerror</code></li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- N3 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">N3</span>
+      <span class="card-title">Log interno acumula sem limite e deixa o programa mais lento com o tempo</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v25)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Painel visual de debug removido da tela (era exibido no canto inferior direito). Log continua sendo enviado ao servidor via POST — leitura por <code>curl http://localhost:3333/log</code>. Sem acúmulo na UI.</p>
+      <ul class="card-changes">
+        <li>Elemento <code>#_dbg</code> removido de <code>dbg()</code> — só o envio remoto permanece</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- N4 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">N4</span>
+      <span class="card-title">Efeito glass recria elementos internos do zero a cada digitação</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v27)</span>
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">⚠️ Atenção</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Os três canvas offscreen do glass (<code>_glSnap</code>, <code>_glBlurred</code>, <code>_glOff</code>) são criados uma vez como variáveis de módulo e reutilizados a cada <code>draw()</code>. Redimensionados apenas quando W/H muda.</p>
+      <ul class="card-changes">
+        <li><code>const _glSnap, _glBlurred, _glOff</code> declarados junto aos globals</li>
+        <li>Redimensionamento condicional: <code>if (canvas.width !== W) canvas.width = W</code></li>
+        <li><code>clearRect()</code> antes de redesenhar — evita artefatos de frame anterior</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- N5 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">N5</span>
+      <span class="card-title">Muitos layouts podem travar o carregamento das miniaturas</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v27)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc"><code>fetchThumbnails</code> divide os layouts em lotes de 25, busca em paralelo via <code>Promise.all</code> e mescla os mapas de imagens antes de preencher os cards.</p>
+      <ul class="card-changes">
+        <li>Chunking: <code>for (let i = 0; i &lt; layouts.length; i += 25)</code></li>
+        <li>Paralelo: <code>Promise.all(chunks.map(async chunk =&gt; figmaGet(...)))</code></li>
+        <li>Merge: <code>Object.assign({}, ...results)</code> — seguro mesmo com chunks vazios</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- N6 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">N6</span>
+      <span class="card-title">Drag da foto travado no eixo horizontal</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Corrigido (mar/2026, v25)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">⚠️ Atenção</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Ao arrastar a foto no modo drag, a imagem só se movia horizontalmente. O eixo Y ficava travado.</p>
+      <ul class="card-changes">
+        <li>Causa: bloco "auto-shift" em <code>drawFoto</code> clampava <code>dy</code> a cada render, cancelando o movimento vertical do usuário</li>
+        <li>Correção: auto-shift removido de <code>drawFoto</code> — posicionamento inicial corrigido via <code>_aplicarAlinhamento</code> (eye-aware) e <code>defaultFotoOffset</code></li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- N7 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">N7</span>
+      <span class="card-title">Foto não reposicionava ao trocar de layout</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Corrigido (mar/2026, v25)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Se uma foto já estava carregada e o usuário trocava de layout, a imagem ficava fora de posição — o alinhamento automático por olhos não era acionado na troca.</p>
+      <ul class="card-changes">
+        <li>Ao finalizar <code>loadLayerImages</code>, se há foto carregada e o novo layout tem <code>field:olhos</code>, <code>detectarAlinharOlhos()</code> é chamado automaticamente</li>
+        <li>Cobre também o caminho onde não há camadas a carregar (retorno antecipado)</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- N8 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">N8</span>
+      <span class="card-title">Alinhar olhos não funcionava com foto espelhada (flipH)</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Corrigido (mar/2026, v27)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">⚠️ Atenção</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Com o flip horizontal ativado, o botão "Alinhar olhos" posicionava a foto no lugar errado — ou selecionava o rosto errado em fotos com múltiplas pessoas.</p>
+      <ul class="card-changes">
+        <li>Causa: detecção rodava na imagem não-espelhada, mas <code>_selecionarRosto()</code> comparava coords naturais com <code>olhosBox.cx</code> (espaço de exibição) — lados trocados</li>
+        <li>Fix: <code>detectarAlinharOlhos()</code> desenha a imagem espelhada no canvas de detecção quando <code>foto.flipH = true</code> — coordenadas de saída já ficam no espaço de exibição</li>
+        <li>Removido <code>natW - refPoint.x</code> de <code>_aplicarAlinhamento</code> — não mais necessário</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="section-title">Performance <span class="badge">P1–P3</span></div>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Otimizações de carregamento e memória — implementadas em v27.</p>
+
+  <!-- P1 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">P1</span>
+      <span class="card-title">Cache de imagens em memória</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v27)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Ao trocar de layout e voltar, todas as imagens das camadas eram baixadas novamente do Figma — mesmo sem nada ter mudado.</p>
+      <ul class="card-changes">
+        <li><code>const _imgCache = new Map()</code> global — url → HTMLImageElement</li>
+        <li><code>loadImg()</code> verifica o cache antes de fazer fetch; armazena após carregar</li>
+        <li>Cache limpo em <code>resetFigmaToken()</code> para garantir dados frescos ao trocar de conta</li>
+        <li>Segunda visita a qualquer layout: camadas carregam instantaneamente da memória</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- P2 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">P2</span>
+      <span class="card-title">Assets do layout carregam em paralelo</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v27)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc"><code>loadLayoutAssets()</code> carregava os assets de um layout (logos, fundos, ícones) em sequência — um de cada vez. Com 3 assets, esperava 3× mais do necessário.</p>
+      <ul class="card-changes">
+        <li>Loop <code>for await</code> substituído por <code>Promise.all(slots.map(async ...))</code></li>
+        <li>Todos os assets do layout baixam em paralelo — reduz tempo proporcional ao número de assets</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- P3 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">P3</span>
+      <span class="card-title">Cache do mapa de URLs de camadas</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito (mar/2026, v27)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">A chamada <code>GET /images/?ids=...&amp;scale=1</code> ao Figma retorna um mapa <code>{nodeId: url}</code> para todas as camadas. Era refeita a cada visita ao mesmo layout.</p>
+      <ul class="card-changes">
+        <li><code>const _layerUrlCache = new Map()</code> global — layoutId → mapa de URLs</li>
+        <li><code>loadLayerImages()</code> reutiliza o mapa se já existe para o layout atual</li>
+        <li>Cache limpo junto com <code>_imgCache</code> ao resetar o token Figma</li>
+        <li>Com P1+P3 juntos: segunda visita ao mesmo layout é quase instantânea</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="section-title">Melhorias Futuras <span class="badge">U1–U9 · C1–C8 · M1</span></div>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Features novas — crescimento da plataforma.</p>
+
+  <!-- U1 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">U1</span>
+      <span class="card-title">Campos condicionais</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Feito</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Implementado em mar/2026 (v20). Campos TAG, CTA, TÍTULO e SUBTÍTULO são exibidos apenas quando o layout Figma tem os layers correspondentes.</p>
+      <ul class="card-changes">
+        <li><code>buildFieldUI(meta)</code> usa <code>style.display</code> para mostrar/ocultar seções</li>
+        <li>TAG: oculta se não tem <code>field:tag</code> nem <code>blocoTag</code>; input limpo para não vazar no canvas</li>
+        <li>CTA: oculta se não tem <code>field:cta</code> + <code>field:ctatx</code> simultaneamente</li>
+        <li>Export sempre funciona, mesmo sem foto carregada</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- Fix B -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">Fix B</span>
+      <span class="card-title">Ícone da tag desalinhado na pill dinâmica</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Corrigido (mar/2026, v27)</span>
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">⚠️ Atenção</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">O ícone <code>asset/tag-icon</code> dentro do <code>blocoTag</code> aparecia desalinhado quando o <code>computeDynLayout</code> reposicionava a pill verticalmente (<code>pillDY ≠ 0</code>). O texto da tag também ficava sem padding adequado à direita.</p>
+      <ul class="card-changes">
+        <li><strong>Detecção geométrica:</strong> layers dentro dos bounds de <code>tagPillFrame</code> (±20px) são puladas em <code>drawWithLayerStack</code> e redesenhadas com <code>pillDY</code></li>
+        <li><strong>icSlot:</strong> <code>loadedAssets['tag-icon']</code> é desenhado em posição relativa ao pill — <code>pf.x + icRelX, pf.y + pillDY + icRelY</code></li>
+        <li><strong>Texto centralizado:</strong> <code>textBaseline='middle'</code> ancorado ao centro vertical do pill (<code>pf.y + pillDY + pf.h/2</code>) — mesma âncora do ícone</li>
+        <li><strong>Texto X seguro:</strong> <code>Math.max(tp.x, pf.x + icRelX + icSlot.w + 8)</code> — nunca sobrepõe o ícone</li>
+        <li><strong>padRight do Figma:</strong> <code>(pf.x + pf.w) − (tp.x + tp.w)</code> preserva o respiro original do designer</li>
+        <li>Escopo corrigido: <code>tp</code>, <code>pillDY</code>, <code>icSlot</code> todos declarados antes do uso</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- Fix C -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">Fix C</span>
+      <span class="card-title">Campos Offset X/Y muito largos na sidebar</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Corrigido (mar/2026, v27)</span>
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Os inputs de Offset X e Offset Y ocupavam metade da sidebar cada (<code>1fr 1fr</code>), ficando excessivamente largos e desalinhados verticalmente.</p>
+      <ul class="card-changes">
+        <li><code>.offset-grid</code> alterado para <code>grid-template-columns: 90px 90px</code></li>
+        <li><code>align-items: end</code> no grid — os dois inputs ficam alinhados pela base</li>
+        <li>Label + input encapsulados em <code>flex-direction: column</code> para espaçamento consistente</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- U2 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">U2</span>
+      <span class="card-title">Posicionamento automático por olhos</span>
+      <span class="card-pills">
+        <span class="done-badge">✅ Funcional (mar/2026)</span>
+        <span class="pill">🔴 Complexo</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~1,5 dia</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">A ferramenta detecta o rosto na foto e posiciona automaticamente para os olhos caírem no ponto marcado pelo designer no Figma (<code>field:olhos</code>). A imagem nunca é cortada — sempre aspect-fit — e é escalada automaticamente para preencher a área visível sem espaços brancos.</p>
+
+      <p style="font-weight:600;margin:12px 0 6px;">O que foi implementado</p>
+      <ul class="card-changes">
+        <li>Layer <code>field:olhos</code> no Figma define cx/cy (ponto-alvo) e w (IOD de referência)</li>
+        <li>face-api.js carregado via CDN GitHub (~1.5MB, browser cacheia; CDN npm não tem pasta <code>weights/</code>)</li>
+        <li>Detecção automática ao carregar foto + botão manual <strong>🎯 Alinhar olhos</strong></li>
+        <li><strong>fillScale eye-aware:</strong> escala mínima calculada pela posição dos olhos na imagem para garantir que nenhuma borda da área visível fique com espaço branco</li>
+        <li>drawFoto sempre aspect-fit (crop removido) com clip ao fotoField</li>
+        <li>Mira azul (crosshair) confirma visualmente o ponto-alvo após alinhamento</li>
+        <li>Log remoto via <code>dbg()</code> → <code>curl http://localhost:3333/log</code></li>
+      </ul>
+
+      <p style="font-weight:600;margin:12px 0 6px;">Cadeia de fallbacks — 5 níveis</p>
+      <ul class="card-changes">
+        <li><strong>L1 — Dois olhos (rosto frontal):</strong> midpoint entre os olhos · Confiança: ALTA</li>
+        <li><strong>L2 — Um olho (perfil):</strong> olho visível, escala pelo tamanho do rosto · Confiança: MÉDIA</li>
+        <li><strong>L3 — Rosto sem olhos visíveis:</strong> centro do rosto (óculos escuros, baixa qualidade) · Confiança: BAIXA</li>
+        <li><strong>L4 — Retry automático:</strong> reprocessa com contraste aumentado se L1-L3 falharam · Confiança: MÉDIA/BAIXA</li>
+        <li><strong>L5 — Falhou:</strong> mantém posição atual, avisa o operador</li>
+      </ul>
+
+      <p style="font-weight:600;margin:12px 0 6px;">Comportamento por tipo de foto</p>
+      <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:8px;">
+        <tr style="background:rgba(255,255,255,0.05)"><th style="text-align:left;padding:4px 8px">Situação</th><th style="padding:4px 8px">Resultado</th><th style="text-align:left;padding:4px 8px">O que acontece</th></tr>
+        <tr><td style="padding:4px 8px">Rosto frontal</td><td style="text-align:center;padding:4px 8px">✅</td><td style="padding:4px 8px">Dois olhos — precisão máxima</td></tr>
+        <tr style="background:rgba(255,255,255,0.03)"><td style="padding:4px 8px">Óculos comuns</td><td style="text-align:center;padding:4px 8px">✅</td><td style="padding:4px 8px">Modelo treinado com óculos</td></tr>
+        <tr><td style="padding:4px 8px">Óculos escuros</td><td style="text-align:center;padding:4px 8px">⚠️</td><td style="padding:4px 8px">Pode funcionar (L2/L3)</td></tr>
+        <tr style="background:rgba(255,255,255,0.03)"><td style="padding:4px 8px">Rosto ~30° lateral</td><td style="text-align:center;padding:4px 8px">✅</td><td style="padding:4px 8px">Dois olhos com boa precisão</td></tr>
+        <tr><td style="padding:4px 8px">Rosto de perfil (&gt;45°)</td><td style="text-align:center;padding:4px 8px">⚠️</td><td style="padding:4px 8px">Um olho — posição + escala automáticas</td></tr>
+        <tr style="background:rgba(255,255,255,0.03)"><td style="padding:4px 8px">Rosto totalmente lateral</td><td style="text-align:center;padding:4px 8px">❌</td><td style="padding:4px 8px">Fallback L5 — aviso ao operador</td></tr>
+        <tr><td style="padding:4px 8px">Múltiplas pessoas</td><td style="text-align:center;padding:4px 8px">✅</td><td style="padding:4px 8px">Seleciona rosto mais próximo de field:olhos</td></tr>
+        <tr style="background:rgba(255,255,255,0.03)"><td style="padding:4px 8px">Rosto muito pequeno (&lt;15%)</td><td style="text-align:center;padding:4px 8px">❌</td><td style="padding:4px 8px">Pode não detectar — fallback manual</td></tr>
+      </table>
+
+      <div class="card-warn green" style="background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3);color:#86efac;">✅ Implementado em <strong>gerador-banners-dot-v24_olhos.html</strong> · mar/2026 · Validado em primeiros testes</div>
+    </div>
+  </details>
+
+  <!-- U3 -->
+  <details class="card tested">
+    <summary>
+      <span class="card-code">U3</span>
+      <span class="card-title">Remoção de fundo de imagem</span>
+      <span class="card-pills">
+        <span class="tested-badge">🧪 Testada</span>
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~5h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Atualmente você faz o cutout da foto externamente (Photoshop, remove.bg manual) antes de subir na ferramenta.</p>
+      <ul class="card-changes">
+        <li>✅ <strong>Opção gratuita implementada (v20):</strong> <code>@imgly/background-removal</code> — WASM no browser, ~3-8s, sem servidor. Botão ao lado de "Limpar foto", overlay de progresso no canvas, arrastar/flip/escala funcionam após o corte.</li>
+        <li>⏳ <strong>Opção profissional (pendente):</strong> API <code>remove.bg</code> (~R$0,10/imagem, qualidade superior para cabelos finos) via proxy no server.js</li>
+      </ul>
+      <div class="card-warn yellow">⚠️ WASM pode falhar em browsers antigos; remove.bg tem custo por uso.</div>
+    </div>
+  </details>
+
+  <!-- M1 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">M1</span>
+      <span class="card-title">Mobile friendly — usar a ferramenta no celular</span>
+      <span class="card-pills">
+        <span class="pill">🔴 Complexo</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~8h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">A ferramenta será usada frequentemente no celular — o usuário sobe a foto e exporta o banner direto do dispositivo. Hoje o layout é desktop-only e o drag da foto usa eventos de mouse.</p>
+      <ul class="card-changes">
+        <li><strong>Layout:</strong> sidebar lateral → empilhada acima/abaixo do canvas via media query <code>max-width: 768px</code></li>
+        <li><strong>Canvas:</strong> zoom automático para caber na tela (similar ao S11) — export continua na resolução original</li>
+        <li><strong>Drag:</strong> adicionar <code>touchstart/touchmove/touchend</code> em paralelo com os eventos de mouse existentes</li>
+        <li><strong>Pinch-to-zoom:</strong> dois dedos para escalar a foto (controla <code>foto.scale</code>)</li>
+        <li><strong>Galeria:</strong> grid responsivo com cards maiores para toque fácil</li>
+        <li><strong>Botões:</strong> aumentar área de toque para ≥44px nos botões da toolbar</li>
+        <li><strong>Upload:</strong> <code>accept="image/*"</code> já abre câmera em iOS/Android</li>
+      </ul>
+      <div class="card-warn yellow">⚠️ Não pode quebrar a experiência desktop. Estratégia: media query para CSS + detecção de touch para eventos — sem bifurcar lógica de negócio.</div>
+    </div>
+  </details>
+
+  <!-- U4 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">U4</span>
+      <span class="card-title">Múltiplos blocos de texto/tag</span>
+      <span class="card-pills">
+        <span class="pill">🔴 Complexo</span>
+        <span class="pill">🚨 Perigo</span>
+        <span class="pill pill-time">⏱️ ~4 dias</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Hoje a ferramenta assume que há um <code>blocoGlass</code>, um <code>blocoTX</code> e um <code>blocoTag</code> por peça. Se o designer precisar de dois blocos em locais diferentes da tela, não funciona.</p>
+      <ul class="card-changes">
+        <li>Convenção proposta: <code>blocoGlass/2</code>, <code>blocoGlass/3</code> para blocos adicionais</li>
+        <li><code>meta.glassBoxes = []</code> vira array em vez de singular</li>
+        <li>Cada bloco tem campos independentes e <code>computeDynLayout</code> próprio</li>
+        <li>UI agrupa campos por bloco: <em>"Bloco 1 — Texto principal"</em>, <em>"Bloco 2 — Detalhe"</em></li>
+      </ul>
+      <div class="card-warn">🚨 Refatora a arquitetura central. Qualquer erro quebra todos os layouts de todos os clientes. Exige branch separado e testes extensivos antes de virar versão principal.</div>
+    </div>
+  </details>
+
+  <!-- U5 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">U5</span>
+      <span class="card-title">Geração em escala com IA (batch)</span>
+      <span class="card-pills">
+        <span class="pill">🔴 Complexo</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~4 dias</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Hoje a ferramenta é um editor manual: um banner de cada vez. Para campanhas com 10 peças × 3 formatos = 30 banners, você faz tudo na mão.</p>
+      <ul class="card-changes">
+        <li><strong>Módulo A — Batch:</strong> CSV/JSON com <code>titulo, subtítulo, tag, cta, foto, layout</code> → ZIP com tudo</li>
+        <li><strong>Módulo B — Claude gera texto:</strong> você descreve o contexto → Claude retorna N variações em JSON → alimenta o Módulo A</li>
+        <li><strong>Módulo C — Seleção de layout:</strong> Claude sugere o layout ideal pelo tipo/tom do texto</li>
+      </ul>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;">
+        ✅ Claude consegue: ler todos os frames do Figma, extrair tokens de design, entender brand guide, gerar copy, selecionar layout por objetivo.<br>
+        ❌ Claude não faz: criar imagens/fotos, criar vectors, avaliar "ficou bonito".
+      </p>
+    </div>
+  </details>
+
+  <!-- U6 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">U6</span>
+      <span class="card-title">Gerador + Publicador de Posts no Instagram</span>
+      <span class="card-pills">
+        <span class="pill">🔴 Complexo</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~1 semana</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Pipeline completo: usuário dá um briefing → Claude gera o copy → ferramenta escolhe o template e renderiza o banner → Instagram Graph API posta ou agenda. Evolução natural do U5.</p>
+      <ul class="card-changes">
+        <li><strong>Módulo A — Render headless:</strong> Puppeteer abre o gerador sem UI, preenche os campos via JS, exporta <code>canvas.toDataURL()</code> como PNG — sem reescrever o motor de render</li>
+        <li><strong>Módulo B — Claude gera copy:</strong> briefing do usuário → Claude API retorna variações de título/subtítulo/tag/CTA em JSON</li>
+        <li><strong>Módulo C — Seleção de template:</strong> Claude ou regra escolhe o layout ideal por cliente, formato e tom</li>
+        <li><strong>Módulo D — Publicação:</strong> Instagram Graph API posta ou agenda — suporta agendamento nativo, requer conta Business/Creator + app no Meta Developer</li>
+      </ul>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;">
+        <strong style="color:var(--text)">Dependência:</strong> U5 é o predecessor — U6 é U5 + publicação automática.<br>
+        ✅ Não precisa reescrever o motor de render — Puppeteer reutiliza tudo que já existe.<br>
+        ⚠️ Instagram Graph API exige app aprovado no Meta Developer com permissões de publicação.
+      </p>
+    </div>
+  </details>
+
+  <!-- U7 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">U7</span>
+      <span class="card-title">Conjuntos de formatos — sincronizar texto e foto entre formatos</span>
+      <span class="card-pills">
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~7h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Mesma campanha em múltiplos formatos (square 1080×1080, stories 1080×1920, wide 1440×1080). Editar texto ou foto em um formato replica automaticamente nos outros. Exportar todos de uma vez como ZIP.</p>
+      <ul class="card-changes">
+        <li><strong>Convenção Figma:</strong> frames nomeados <code>set/campanha-verao/square</code>, <code>set/campanha-verao/stories</code>, <code>set/campanha-verao/wide</code></li>
+        <li><strong>Sync de foto:</strong> <code>foto.img</code> já persiste entre layouts — gratuito, sem mudança</li>
+        <li><strong>Sync de texto:</strong> <code>switchFormat()</code> salva texto antes de trocar → restaura depois (padrão do <code>switchVariant</code> existente)</li>
+        <li><strong>Strip de formatos:</strong> botões Square / Stories / Wide aparecem abaixo do canvas quando o layout pertence a um set</li>
+        <li><strong>Exportar set:</strong> botão gera ZIP com uma PNG por formato via JSZip (lazy load ~100KB)</li>
+      </ul>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;">
+        ⚠️ Campos que não existem no formato destino são ignorados (nem todos os formatos têm os mesmos fields Figma).<br>
+        ✅ Reutiliza 100% do motor de render existente — apenas orquestra a troca de layout.
+      </p>
+    </div>
+  </details>
+
+  <!-- F1 → C8 -->
+  <details class="card discarded">
+    <summary>
+      <span class="card-code">F1 → C8</span>
+      <span class="card-title">Formatação inline de texto (negrito + cor por seleção)</span>
+      <span class="card-pills">
+        <span class="pill" style="background:rgba(239,68,68,.12);color:#ef4444">❌ Descartado</span>
+        <span class="pill">🟡 Médio</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <div class="card-warn" style="margin-top:12px;">✅ <strong>Implementado como C8 — v29, mar/2026.</strong> A abordagem original (sobrescrever segments do Figma sempre) foi descartada. A versão implementada só ativa a barra de formatação quando o operador edita o texto — se o texto ainda é o original do Figma, os segments do Figma governam. Assim a separação de responsabilidades designer ↔ operador é preservada.</div>
+    </div>
+  </details>
+
+  <!-- U8 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">U8</span>
+      <span class="card-title">Auto-detecção de elementos Figma sem nomenclaturas obrigatórias</span>
+      <span class="card-pills">
+        <span class="pill">🔴 Complexo</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~1 dia</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Hoje o designer precisa renomear layers no Figma com nomes exatos (<code>field:titulo</code>, <code>blocoGlass</code>, <code>asset/logo</code>…) para que a ferramenta funcione. A ideia é inverter: a ferramenta analisa propriedades do nó (tipo, fills, effects, opacidade, hierarquia) e detecta automaticamente o papel de cada layer.</p>
+      <ul class="card-changes">
+        <li><strong>Alta confiança (90–100%):</strong> <code>BACKGROUND_BLUR</code> → blocoGlass · fill <code>IMAGE</code> → foto · <code>opacity=0</code> TEXT → ctatx · <code>opacity=0</code> não-TEXT → olhos</li>
+        <li><strong>Heurística (70–80%):</strong> maior <code>fontSize</code> no container → título · segundo maior → texto · TEXT curto próximo a pill → tag</li>
+        <li><strong>Múltiplos campos de texto (tx1, tx2, tx3…):</strong> peças específicas podem ter 3, 4 ou mais textos editáveis além do título e subtítulo — o sistema <code>tx1/tx2/…</code> já existe no código (<code>buildFieldUI</code> gera inputs dinamicamente, <code>drawEditableText</code> renderiza em loop). A auto-detecção precisa identificar e preencher esses campos extras em ordem de posição Y (de cima para baixo), após detectar título e texto</li>
+        <li><strong>Abordagem híbrida:</strong> nome explícito sempre tem prioridade — heurística é fallback apenas para layers sem nome</li>
+        <li>Backward-compatible: layouts já nomeados continuam funcionando sem nenhuma mudança</li>
+        <li>Log indica quais campos foram detectados por nome vs. por heurística</li>
+      </ul>
+      <div class="card-warn yellow">⚠️ Casos ambíguos ainda precisarão de nome explícito — ex: dois textos do mesmo tamanho, dois containers grandes. Heurística não elimina a necessidade de nomes, apenas os torna opcionais para layouts simples.</div>
+    </div>
+  </details>
+
+  <!-- U9 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">U9</span>
+      <span class="card-title">Mesma peça em múltiplos tamanhos — exportar variações de escala</span>
+      <span class="card-pills">
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~4h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Gerar a mesma peça em diferentes tamanhos para atender às exigências de cada canal (LinkedIn feed 1200×627, Twitter/X 1200×675, banner email 600×200 etc.) sem criar um frame Figma separado para cada resolução.</p>
+      <ul class="card-changes">
+        <li>O designer define apenas um frame no Figma (resolução master) e a ferramenta exporta em N tamanhos pré-configurados</li>
+        <li>Convenção proposta: metadado no nome do frame — <code>set/campanha/master</code> com lista de tamanhos em um text node especial</li>
+        <li>Alternativa: painel "Tamanhos de exportação" na sidebar com presets editáveis (LinkedIn, Twitter, E-mail, Custom)</li>
+        <li>Render proporcional: o canvas é escalado antes do <code>canvas.toBlob()</code> sem re-renderizar tudo do zero</li>
+        <li>Exportação em ZIP com um PNG por tamanho: <code>banner-linkedin-1200x627.png</code>, <code>banner-email-600x200.png</code> etc.</li>
+      </ul>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;">
+        Diferente de U7 (que sincroniza texto/foto entre frames Figma distintos) — aqui é um único design exportado em diferentes resoluções.<br>
+        ✅ Reutiliza o motor de render; apenas adiciona um loop de escala + ZIP no export.
+      </p>
+    </div>
+  </details>
+
+  <hr>
+
+  <!-- C1 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">C1</span>
+      <span class="card-title">Exportação múltipla em ZIP</span>
+      <span class="card-pills">
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~7h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Com textos prontos, exportar o mesmo conteúdo em todos os formatos do cliente (quadrado, story, LinkedIn) de uma vez.</p>
+      <ul class="card-changes">
+        <li>Botão "Exportar todos os layouts" → JSZip + <code>canvas.toBlob()</code> em loop</li>
+        <li>Útil para campanhas onde todos os formatos precisam sair juntos</li>
+      </ul>
+      <div class="card-warn yellow">⚠️ Renderizar muitos layouts em loop pode travar o browser — precisa de render assíncrono com pausa entre cada layout.</div>
+    </div>
+  </details>
+
+  <!-- C2 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">C2</span>
+      <span class="card-title">Histórico de conjuntos de texto</span>
+      <span class="card-pills">
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~2h30</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Fechou a aba e perdeu os textos. Ou quer reutilizar textos de uma campanha anterior.</p>
+      <ul class="card-changes">
+        <li>Salva automaticamente no <code>localStorage</code> os últimos N conjuntos de textos</li>
+        <li>Dropdown "Textos recentes" acima dos campos</li>
+        <li>Um clique restaura título, subtítulo, tag e CTA de uma sessão anterior</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- C3 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">C3</span>
+      <span class="card-title">Debug visual no canvas (bounding boxes)</span>
+      <span class="card-pills">
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~3h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Quando um layout tem problema de posicionamento, é difícil entender o que acontece sem abrir o DevTools.</p>
+      <ul class="card-changes">
+        <li>Toggle "Modo debug" no painel</li>
+        <li>Sobreposição colorida no canvas: 🟩 glass/blocoTX · 🟦 texto · 🟥 tag · 🟨 foto/máscara</li>
+        <li>Diagnosticar designs novos sem DevTools</li>
+      </ul>
+      <div class="card-warn yellow">⚠️ O toggle debug não pode vazar para o PNG exportado — canvas deve ser limpo antes do export.</div>
+    </div>
+  </details>
+
+  <!-- C4 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">C4</span>
+      <span class="card-title">Validação de nomes de layer ao carregar</span>
+      <span class="card-pills">
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~2h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Designer cria template com <code>tx</code> em vez de <code>blocoTX</code>. A ferramenta carrega mas nada funciona. Difícil diagnosticar.</p>
+      <ul class="card-changes">
+        <li>Ao carregar um design, exibe lista de warnings com sugestão: <em>⚠️ "tx" encontrado — quis dizer "blocoTX"?</em></li>
+        <li>Já existe parcialmente em <code>validarNomesLayout</code> — é expandir</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- C5 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">C5</span>
+      <span class="card-title">Tooltip com nome da layer Figma</span>
+      <span class="card-pills">
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~1h20</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">O operador da ferramenta não sabe qual layer no Figma corresponde a cada campo.</p>
+      <ul class="card-changes">
+        <li>Hover sobre campo editável → tooltip: <em>"field:titulo — dentro de blocoGlass"</em></li>
+        <li>Facilita comunicação designer ↔ operador</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- C6 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">C6</span>
+      <span class="card-title">Guia de nomenclatura no Figma</span>
+      <span class="card-pills">
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~4h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Não há referência centralizada das convenções de nomenclatura para designers novos criando templates.</p>
+      <ul class="card-changes">
+        <li>Page no próprio Figma do cliente com a tabela completa de nomes de layers</li>
+        <li>Exemplos visuais de cada layer nomeada</li>
+        <li>Referência viva que fica junto com os designs</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- C7 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">C7</span>
+      <span class="card-title">Resize lateral do glass box / blocoTX</span>
+      <span class="card-pills">
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~3h30</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Arrastar as bordas esquerda e direita do glass box diretamente no canvas para ajustar a largura. O texto reflow automaticamente dentro do novo tamanho.</p>
+      <ul class="card-changes">
+        <li>Handles visuais (borda pontilhada + retângulos nas bordas L/R) no canvas, ocultos no export PNG</li>
+        <li>Arrastar borda direita → altera <code>gl.w</code>; arrastar borda esquerda → altera <code>gl.x</code> e <code>gl.w</code></li>
+        <li><code>effectiveTextWidth</code> e <code>computeDynLayout</code> já respondem automaticamente ao novo <code>gl.w</code></li>
+        <li>Largura mínima: 80px; altura continua auto-gerida pelo <code>computeDynLayout</code></li>
+        <li>Funciona para <code>blocoGlass</code> e <code>blocoTX</code></li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- C8 -->
+  <details class="card done">
+    <summary>
+      <span class="card-code">C8</span>
+      <span class="card-title">Formatação de texto: bold + cor por seleção <span class="done-badge">✅ v29 mar/2026</span></span>
+      <span class="card-pills">
+        <span class="pill">🟡 Médio</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~5h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Quando o operador digita texto novo, toda a formatação do Figma é descartada e ele pode formatar livremente: selecionar trecho no textarea e aplicar bold e/ou cor. A barra de formatação só aparece quando o texto foi editado.</p>
+      <ul class="card-changes">
+        <li>✅ Barra de formatação aparece somente quando texto ≠ original do Figma</li>
+        <li>✅ <strong>Bold por seleção:</strong> toggle (clica de novo para remover) — peso 800 no canvas</li>
+        <li>✅ Texto editado começa em regular (400) — sinaliza que pode ser formatado</li>
+        <li>✅ <strong>Cor por seleção:</strong> swatches extraídos das cores Figma do layout ativo (base + segments) + branco e preto fixos</li>
+        <li>✅ Bold + cor acumulam — aplicar um não apaga o outro</li>
+        <li>✅ Ao trocar de layout, texto e formatação resetam para o Figma original</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="section-title">Mobile &amp; Acessibilidade <span class="badge">M1</span></div>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Adaptações para uso em celulares e tablets — a ferramenta será frequentemente usada fora do desktop.</p>
+
+  <!-- M1 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">M1</span>
+      <span class="card-title">Mobile friendly — layout responsivo + touch</span>
+      <span class="card-pills">
+        <span class="pill">🔴 Complexo</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~8h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">A ferramenta foi pensada para desktop. Em celular, a sidebar lateral não cabe na tela, os botões são pequenos demais para toque e o drag da foto não responde ao dedo.</p>
+      <ul class="card-changes">
+        <li><strong>Layout:</strong> <code>@media (max-width: 768px)</code> empilha sidebar + canvas verticalmente — canvas no topo, controles abaixo</li>
+        <li><strong>Canvas:</strong> zoom automático por CSS <code>transform: scale</code> para caber no viewport (similar ao S11)</li>
+        <li><strong>Drag da foto:</strong> adicionar <code>touchstart/touchmove/touchend</code> ao lado dos mouse events existentes; pinch-to-zoom para o slider de escala</li>
+        <li><strong>Galeria de fotos:</strong> grid responsivo com cards maiores para toque</li>
+        <li><strong>Botões da toolbar:</strong> área de toque mínima de 44×44px (guideline iOS/Android)</li>
+        <li><strong>Upload de foto:</strong> testar <code>accept="image/*;capture=camera"</code> para acesso direto à câmera no iOS e Android</li>
+        <li><strong>Modais:</strong> centralizar e limitar largura a 95vw em telas estreitas</li>
+      </ul>
+      <div class="card-warn yellow">⚠️ Não pode quebrar a experiência desktop — toda mudança deve ser protegida por media query ou detecção de touch. Recomendado: branch separado para testes antes de merge.</div>
+    </div>
+  </details>
+
+  <div class="note">
+    <strong>Limitação conhecida — elementos vetorizados com blur (swoosh, decorativos)</strong><br>
+    Canvas 2D não reproduz filtros vetoriais do Figma (blur direcional, gradientes complexos, blend modes aninhados). Não é limitação desta ferramenta — é do canvas HTML.<br><br>
+    ✅ <strong>Solução atual:</strong> designer exporta como PNG com blur "assado" via <code>asset/swoosh</code>.<br>
+    💡 <strong>Variação por tema:</strong> <code>asset/swoosh-dark</code> / <code>asset/swoosh-light</code> com toggle.<br>
+    🔬 <strong>Alternativa futura:</strong> SVG+filter no DOM (mais complexo, possível para casos simples).
+  </div>
+
+</div>
+</body>
+</html>
