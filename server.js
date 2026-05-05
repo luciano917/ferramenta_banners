@@ -8,7 +8,7 @@ const fs    = require('fs');
 const path  = require('path');
 const url   = require('url');
 
-const PORT = 3333;
+const PORT = process.env.PORT || 3333; // Render injeta PORT dinâmico
 const DIR  = __dirname;
 
 // Encontra o arquivo HTML principal mais recente (gerador-banners-dot-v*.html, excluindo checkpoints)
@@ -136,8 +136,12 @@ function handleToken(req, res) {
 const CONFIG_FILE = path.join(DIR, '.config.json');
 
 function _loadConfig() {
-  try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); }
-  catch { return { clients: [], activeClient: null }; }
+  // Prioridade: arquivo local → env var (CONFIG_JSON, útil pro Render que não tem persistent disk no free tier)
+  try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); } catch {}
+  if (process.env.CONFIG_JSON) {
+    try { return JSON.parse(process.env.CONFIG_JSON); } catch {}
+  }
+  return { clients: [], activeClient: null };
 }
 
 function _saveConfig(cfg) {

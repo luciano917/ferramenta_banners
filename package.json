@@ -1,0 +1,14 @@
+{
+  "name": "ferramenta-banners",
+  "version": "1.0.0",
+  "description": "Banner Creator — gerador de banners a partir de templates Figma",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

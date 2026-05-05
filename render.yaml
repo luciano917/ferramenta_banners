@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: ferramenta-banners
+    runtime: node
+    buildCommand: ""
+    startCommand: node server.js
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 20
