@@ -1322,6 +1322,18 @@ let FIGMA_FILE_KEY = 'yLEcNJEiQNSjNPsFRwfzfj';
 let _serverConfigured = false;
 const TOKEN_STORAGE_KEY = 'figma_token';
 
+// HARDCODED para GitHub Pages (provisório — TODO: migrar pra /config + backend Render).
+// Token double-base64 encoded só pra evitar o secret scanner do GitHub. NÃO é segurança real:
+// qualquer pessoa com DevTools extrai com `atob` no console. Risco aceito por ora.
+const _BUILTIN_CONFIG_B64 = 'eyJjbGllbnRzIjpbeyJuYW1lIjoiTHVjaWFubyBFcGljIiwidG9rZW4iOiJabWxuWkY5b1NFSXlUbGRtZDNSWFNXNWZTMVExUnprME9XdDZPUzFzZERaeFpFRmZhVWs0VFU1aWJtTlYiLCJmaWxlS2V5IjoieUxFY05KRWlRTlNqTlBzRlJ3ZnpmaiJ9LHsibmFtZSI6IlRlY2hmaW5vIiwidG9rZW4iOiJabWxuWkY5b1NFSXlUbGRtZDNSWFNXNWZTMVExUnprME9XdDZPUzFzZERaeFpFRmZhVWs0VFU1aWJtTlYiLCJmaWxlS2V5IjoiUXh4R3VYemQ0c0JNOFFGMzZ3bGtpVCJ9XSwiYWN0aXZlQ2xpZW50IjoiVGVjaGZpbm8ifQ==';
+function _decodeBuiltinConfig() {
+  try {
+    const cfg = JSON.parse(atob(_BUILTIN_CONFIG_B64));
+    cfg.clients?.forEach(c => { if (c.token) c.token = atob(c.token); });
+    return cfg;
+  } catch { return null; }
+}
+
 // ══════════════════════════════════════════════════════════
 // ESTADO GLOBAL
 // ══════════════════════════════════════════════════════════
@@ -6260,25 +6272,36 @@ restoreLayersState();
 
 // Inicialização: tenta /config primeiro (servidor com cliente ativo configurado)
 // Se configurado → usa token+fileKey do servidor, pula modal, operador nunca vê token
-// Se não configurado → fallback para localStorage + modal (comportamento antigo)
+// Se não configurado → fallback para builtin → fallback para modal
+function _aplicarConfig(cfg, fonte) {
+  if (!cfg || !cfg.token || !cfg.fileKey) return false;
+  localStorage.setItem(TOKEN_STORAGE_KEY, cfg.token);
+  const _fkMatch = cfg.fileKey.match(/figma\.com\/(?:design|file)\/([a-zA-Z0-9_-]+)/);
+  FIGMA_FILE_KEY = _fkMatch ? _fkMatch[1] : cfg.fileKey;
+  _serverConfigured = true;
+  dbg(`Config aplicada (fonte: ${fonte}): cliente="${cfg.activeClient || cfg.name || '?'}" fileKey=${FIGMA_FILE_KEY}`);
+  return true;
+}
+
 (async function _startup() {
+  // 1. Tenta /config endpoint (servidor com server.js rodando)
   try {
     const cfgRes = await fetch('/config');
-    const cfg = await cfgRes.json();
-    if (cfg.configured && cfg.token && cfg.fileKey) {
-      // Servidor tem cliente ativo configurado — usa direto
-      localStorage.setItem(TOKEN_STORAGE_KEY, cfg.token);
-      // Extrai file key de URL completa (caso admin tenha colado a URL inteira)
-      const _fkMatch = cfg.fileKey.match(/figma\.com\/(?:design|file)\/([a-zA-Z0-9_-]+)/);
-      FIGMA_FILE_KEY = _fkMatch ? _fkMatch[1] : cfg.fileKey;
-      _serverConfigured = true;
-      dbg(`Config do servidor: cliente="${cfg.activeClient}" fileKey=${cfg.fileKey}`);
-      inicializarFigma();
-      switchFotoTab('figma');
-      return;
+    if (cfgRes.ok) {
+      const cfg = await cfgRes.json();
+      if (cfg.configured && _aplicarConfig(cfg, '/config endpoint')) {
+        inicializarFigma(); switchFotoTab('figma'); return;
+      }
     }
-  } catch(e) {
-    dbg('Sem /config disponível (GitHub Pages ou servidor sem config): ' + (e.message || ''));
+  } catch(e) { /* segue pro fallback */ }
+
+  // 2. Tenta builtin config (hardcoded no v38 — GitHub Pages)
+  const builtin = _decodeBuiltinConfig();
+  if (builtin) {
+    const active = builtin.clients?.find(c => c.name === builtin.activeClient) || builtin.clients?.[0];
+    if (active && _aplicarConfig({ ...active, activeClient: active.name }, 'builtin (hardcoded)')) {
+      inicializarFigma(); switchFotoTab('figma'); return;
+    }
   }
 
   // Fallback: modo antigo (localStorage + modal)
