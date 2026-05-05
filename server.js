@@ -112,8 +112,12 @@ let _figmaToken = '';
 
 function handleToken(req, res) {
   if (req.method === 'GET') {
+    // Se há config com cliente ativo, retorna o token do cliente ativo
+    const cfg = _loadConfig();
+    const active = cfg.clients?.find(c => c.name === cfg.activeClient);
+    const token = active?.token || _figmaToken;
     res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-    res.end(JSON.stringify({ token: _figmaToken }));
+    res.end(JSON.stringify({ token }));
     return;
   }
   if (req.method === 'POST') {
@@ -126,6 +130,96 @@ function handleToken(req, res) {
     return;
   }
   res.writeHead(405, { 'Access-Control-Allow-Origin': '*' }); res.end();
+}
+
+// ── CONFIG: gerenciamento de clientes/tokens persistido em .config.json ───
+const CONFIG_FILE = path.join(DIR, '.config.json');
+
+function _loadConfig() {
+  try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); }
+  catch { return { clients: [], activeClient: null }; }
+}
+
+function _saveConfig(cfg) {
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2), 'utf8');
+}
+
+function handleConfig(req, res) {
+  const CORS = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' };
+
+  // GET /config — retorna config ativa (token + fileKey do cliente ativo). Nunca expõe tokens de outros clientes.
+  if (req.method === 'GET') {
+    const cfg = _loadConfig();
+    const active = cfg.clients?.find(c => c.name === cfg.activeClient);
+    res.writeHead(200, CORS);
+    res.end(JSON.stringify({
+      configured: !!active,
+      activeClient: cfg.activeClient || null,
+      fileKey: active?.fileKey || null,
+      token: active?.token || null,
+      // Lista de nomes de clientes (sem tokens) — pro seletor na ferramenta
+      clients: (cfg.clients || []).map(c => ({ name: c.name, fileKey: c.fileKey })),
+    }));
+    return;
+  }
+
+  // POST /config — salva config completa (admin)
+  if (req.method === 'POST') {
+    let body = '';
+    req.on('data', d => { body += d; });
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        const cfg = _loadConfig();
+
+        // Ação: setar cliente ativo
+        if (data.action === 'setActive' && data.clientName) {
+          cfg.activeClient = data.clientName;
+          _saveConfig(cfg);
+          res.writeHead(200, CORS);
+          res.end(JSON.stringify({ ok: true }));
+          return;
+        }
+
+        // Ação: adicionar/atualizar cliente
+        if (data.action === 'upsertClient' && data.client) {
+          const { name, token, fileKey } = data.client;
+          if (!name) { res.writeHead(400, CORS); res.end(JSON.stringify({ err: 'nome obrigatório' })); return; }
+          const idx = cfg.clients.findIndex(c => c.name === name);
+          if (idx >= 0) {
+            cfg.clients[idx] = { ...cfg.clients[idx], ...data.client };
+          } else {
+            cfg.clients.push({ name, token: token || '', fileKey: fileKey || '' });
+          }
+          // Se é o primeiro cliente, ativa automaticamente
+          if (!cfg.activeClient) cfg.activeClient = name;
+          _saveConfig(cfg);
+          res.writeHead(200, CORS);
+          res.end(JSON.stringify({ ok: true }));
+          return;
+        }
+
+        // Ação: remover cliente
+        if (data.action === 'removeClient' && data.clientName) {
+          cfg.clients = cfg.clients.filter(c => c.name !== data.clientName);
+          if (cfg.activeClient === data.clientName) cfg.activeClient = cfg.clients[0]?.name || null;
+          _saveConfig(cfg);
+          res.writeHead(200, CORS);
+          res.end(JSON.stringify({ ok: true }));
+          return;
+        }
+
+        res.writeHead(400, CORS);
+        res.end(JSON.stringify({ err: 'ação inválida' }));
+      } catch(e) {
+        res.writeHead(400, CORS);
+        res.end(JSON.stringify({ err: e.message }));
+      }
+    });
+    return;
+  }
+
+  res.writeHead(405, CORS); res.end();
 }
 
 // ── LOG REMOTO: armazena mensagens de debug do browser ────────────────────
@@ -161,10 +255,11 @@ http.createServer(function(req, res) {
   const pathname = parsed.pathname;
 
   if (req.method === 'OPTIONS') {
-    res.writeHead(200, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST', 'Access-Control-Allow-Headers': 'Content-Type' }); res.end(); return;
+    res.writeHead(200, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST,DELETE', 'Access-Control-Allow-Headers': 'Content-Type,X-Figma-Token' }); res.end(); return;
   }
 
   if (pathname === '/token') { handleToken(req, res); return; }
+  if (pathname === '/config') { handleConfig(req, res); return; }
   if (pathname === '/log') { handleLog(req, res); return; }
   if (pathname.startsWith('/figma-api/')) { figmaApi(pathname + (parsed.search || ''), req, res); return; }
   if (pathname === '/figma-img') { figmaImg(parsed.query, res); return; }

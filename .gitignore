@@ -1,0 +1,21 @@
+# Configurações sensíveis (contém tokens)
+.config.json
+
+# Arquivos temporários
+log_temp.json
+server.log
+*.log
+
+# Backups
+banners-backup-*.zip
+
+# IDE / Claude
+.claude/
+.mcp.json
+
+# Análises temporárias
+_analyze_*.js
+_old/
+
+# Notas locais
+Restaurar Claude projeto em nova m*quina.txt

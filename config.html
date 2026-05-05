@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuração — Criador de Banners</title>
+<style>
+  :root { --bg: #0f1117; --surface: #1a1d27; --border: #2e3347; --text: #e2e4ef; --muted: #7b8099; --red: #FF0050; --green: #22c55e; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+  .wrap { max-width: 600px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 12px; margin-bottom: 32px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .card h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 14px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; }
+  .field input { width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; }
+  .field input:focus { outline: none; border-color: var(--red); }
+  .btn { padding: 9px 18px; border-radius: 7px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--red); color: #fff; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-danger { background: transparent; border: 1px solid #c33; color: #f66; font-size: 11px; }
+  .btn-sm { padding: 5px 12px; font-size: 11px; }
+  .row { display: flex; gap: 8px; align-items: end; }
+  .row .field { flex: 1; margin-bottom: 0; }
+  .client-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px; background: var(--bg); }
+  .client-item.active { border-color: var(--green); }
+  .client-item .name { font-weight: 600; flex: 1; }
+  .client-item .filekey { font-size: 11px; color: var(--muted); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+  .badge-active { background: var(--green); color: #000; }
+  .status { margin-top: 12px; font-size: 12px; color: var(--green); min-height: 18px; }
+  .status.err { color: #f66; }
+  .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 24px; }
+  .back-link { display: inline-block; margin-bottom: 20px; color: var(--muted); text-decoration: none; font-size: 12px; }
+  .back-link:hover { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/" class="back-link">← Voltar para a ferramenta</a>
+  <h1>Configuração</h1>
+  <p class="sub">Gerencie tokens e arquivos Figma por cliente. A configuração é salva no servidor — todos que acessarem a ferramenta usam automaticamente.</p>
+
+  <!-- LISTA DE CLIENTES -->
+  <div class="card">
+    <h2>Clientes configurados</h2>
+    <div id="clientList"></div>
+    <div id="statusMsg" class="status"></div>
+  </div>
+
+  <!-- ADICIONAR / EDITAR CLIENTE -->
+  <div class="card">
+    <h2 id="formTitle">Adicionar cliente</h2>
+    <div class="field">
+      <label>Nome do cliente</label>
+      <input type="text" id="inpName" placeholder="Ex: DOT Digital Group">
+    </div>
+    <div class="field">
+      <label>Token Figma</label>
+      <input type="text" id="inpToken" placeholder="figd_...">
+    </div>
+    <div class="field">
+      <label>Figma File Key (da URL do arquivo)</label>
+      <input type="text" id="inpFileKey" placeholder="Ex: yLEcNJEiQNSjNPsFRwfzfj">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-primary" onclick="salvarCliente()">Salvar</button>
+      <button class="btn btn-outline" onclick="limparForm()">Limpar</button>
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="card" style="border-color: #333;">
+    <h2>Como funciona</h2>
+    <ul style="font-size:12px;color:var(--muted);padding-left:18px;line-height:1.8">
+      <li>Cadastre cada cliente com seu <b>token Figma</b> e <b>File Key</b></li>
+      <li>Clique em <b>"Ativar"</b> no cliente desejado</li>
+      <li>Qualquer pessoa que abrir a ferramenta vai usar o cliente ativo automaticamente</li>
+      <li>O <b>File Key</b> está na URL do Figma: <code>figma.com/design/<b>FILE_KEY</b>/...</code></li>
+      <li>O <b>Token</b> é gerado em: Figma → Settings → Personal access tokens</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const API = '';
+
+async function carregarClientes() {
+  try {
+    const res = await fetch(API + '/config');
+    const cfg = await res.json();
+    renderClients(cfg);
+  } catch(e) {
+    document.getElementById('clientList').innerHTML = '<div class="empty">Erro ao carregar config: ' + e.message + '</div>';
+  }
+}
+
+function renderClients(cfg) {
+  const list = document.getElementById('clientList');
+  if (!cfg.clients?.length) {
+    list.innerHTML = '<div class="empty">Nenhum cliente configurado ainda.</div>';
+    return;
+  }
+  list.innerHTML = cfg.clients.map(c => {
+    const isActive = c.name === cfg.activeClient;
+    return `<div class="client-item ${isActive ? 'active' : ''}">
+      <span class="name">${c.name}</span>
+      <span class="filekey" title="${c.fileKey}">${c.fileKey || '—'}</span>
+      ${isActive ? '<span class="badge badge-active">ATIVO</span>' : `<button class="btn btn-outline btn-sm" onclick="ativarCliente('${esc(c.name)}')">Ativar</button>`}
+      <button class="btn btn-outline btn-sm" onclick="editarCliente('${esc(c.name)}','${esc(c.fileKey)}')">Editar</button>
+      <button class="btn btn-danger btn-sm" onclick="removerCliente('${esc(c.name)}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function esc(s) { return (s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+// Extrai o file key de uma URL Figma ou retorna o valor se já for só a key
+function extractFileKey(input) {
+  if (!input) return '';
+  // URL completa: figma.com/design/FILE_KEY/... ou figma.com/file/FILE_KEY/...
+  const m = input.match(/figma\.com\/(?:design|file)\/([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  // Já é só a key (sem barras, sem pontos)
+  if (/^[a-zA-Z0-9_-]+$/.test(input.trim())) return input.trim();
+  return input.trim();
+}
+
+async function salvarCliente() {
+  const name = document.getElementById('inpName').value.trim();
+  const token = document.getElementById('inpToken').value.trim();
+  const rawFileKey = document.getElementById('inpFileKey').value.trim();
+  const fileKey = extractFileKey(rawFileKey);
+  // Mostra a key extraída no campo (feedback visual)
+  if (fileKey !== rawFileKey) document.getElementById('inpFileKey').value = fileKey;
+  if (!name) { showStatus('Nome obrigatório', true); return; }
+  if (!token) { showStatus('Token obrigatório', true); return; }
+  if (!fileKey) { showStatus('File Key obrigatório', true); return; }
+
+  try {
+    const res = await fetch(API + '/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'upsertClient', client: { name, token, fileKey } })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showStatus('Cliente "' + name + '" salvo com sucesso!');
+      limparForm();
+      carregarClientes();
+    } else {
+      showStatus(data.err || 'Erro ao salvar', true);
+    }
+  } catch(e) { showStatus('Erro: ' + e.message, true); }
+}
+
+async function ativarCliente(name) {
+  try {
+    await fetch(API + '/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'setActive', clientName: name })
+    });
+    showStatus('Cliente "' + name + '" ativado!');
+    carregarClientes();
+  } catch(e) { showStatus('Erro: ' + e.message, true); }
+}
+
+async function removerCliente(name) {
+  if (!confirm('Remover cliente "' + name + '"?')) return;
+  try {
+    await fetch(API + '/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'removeClient', clientName: name })
+    });
+    showStatus('Cliente removido.');
+    carregarClientes();
+  } catch(e) { showStatus('Erro: ' + e.message, true); }
+}
+
+function editarCliente(name, fileKey) {
+  document.getElementById('inpName').value = name;
+  document.getElementById('inpFileKey').value = fileKey;
+  document.getElementById('inpToken').value = '';
+  document.getElementById('inpToken').placeholder = 'Cole o token (ou deixe vazio pra manter o atual)';
+  document.getElementById('formTitle').textContent = 'Editar: ' + name;
+  document.getElementById('inpName').focus();
+}
+
+function limparForm() {
+  document.getElementById('inpName').value = '';
+  document.getElementById('inpToken').value = '';
+  document.getElementById('inpToken').placeholder = 'figd_...';
+  document.getElementById('inpFileKey').value = '';
+  document.getElementById('formTitle').textContent = 'Adicionar cliente';
+}
+
+function showStatus(msg, isErr) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.className = 'status' + (isErr ? ' err' : '');
+  if (!isErr) setTimeout(() => { el.textContent = ''; }, 4000);
+}
+
+carregarClientes();
+</script>
+</body>
+</html>
