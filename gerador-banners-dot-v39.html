@@ -196,6 +196,16 @@ header {
 }
 .lc-variant-btn:hover { border-color: var(--text-muted); color: var(--text); }
 .lc-variant-btn.active { border-color: var(--epic-red); color: var(--epic-red); }
+/* ── Size set: botões de dimensão e botão de download ZIP ── */
+.lc-size-strip { justify-content: flex-start; }
+.lc-size-btn   { font-size: 8px; padding: 2px 5px; min-width: 0; letter-spacing: 0; text-transform: none; }
+.lc-dl-set-btn {
+  font-size: 8px; padding: 3px 0; border-radius: 5px; margin: 2px 6px 6px;
+  border: 1px solid var(--border-color); background: var(--bg-secondary);
+  color: var(--text-muted); cursor: pointer; width: calc(100% - 12px); text-align: center;
+  transition: var(--trans); display: block;
+}
+.lc-dl-set-btn:hover { border-color: var(--epic-red); color: var(--epic-red); }
 /* ── Banner de sugestão de variante ── */
 #variantBanner {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
@@ -309,7 +319,8 @@ header {
 .panel::-webkit-scrollbar-track { background: var(--border-color); border-radius: 2px; }
 .panel::-webkit-scrollbar-thumb { background: var(--epic-red); border-radius: 2px; }
 .panel { scrollbar-width: thin; scrollbar-color: var(--epic-red) var(--border-color); }
-.panel-section { padding: 13px 16px; border-bottom: 1px solid var(--border-color); }
+.panel-section { padding: 16px 16px; border-bottom: 1px solid var(--border-color); }
+.panel-section .field + .field { margin-top: 14px; }
 .panel-section:last-child { border-bottom: none; }
 .panel-section.hidden { display: none; }
 .field.hidden { display: none; }
@@ -322,6 +333,18 @@ header {
 .field + .field { margin-top: 10px; }
 .field label { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--epic-red); display: flex; align-items: center; gap: 5px; }
 .eye-btn { background: none; border: none; padding: 0; cursor: pointer; opacity: 0.55; display: inline-flex; align-items: center; line-height: 1; flex-shrink: 0; transition: opacity .15s; margin-left: auto; color: inherit; font-size: 0; }
+.fs-btns { display: inline-flex; gap: 3px; margin-left: 6px; }
+.fs-btn { background: none; border: 1px solid var(--border-color); border-radius: 5px; padding: 2px 8px; cursor: pointer; color: var(--text-muted); font-size: 12px; font-weight: 700; line-height: 18px; min-width: 28px; min-height: 22px; text-align: center; transition: border-color .15s, color .15s; font-family: inherit; -webkit-tap-highlight-color: transparent; }
+.fs-btn:hover, .fs-btn:active { border-color: var(--epic-red); color: var(--text-primary); }
+.lh-wrap { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
+.lh-wrap svg { opacity: 0.4; flex-shrink: 0; }
+.lh-slider { width: 48px; height: 3px; -webkit-appearance: none; appearance: none; background: var(--border-color); border-radius: 2px; outline: none; cursor: pointer; }
+.lh-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted); cursor: pointer; transition: background .15s; }
+.lh-slider::-webkit-slider-thumb:hover { background: var(--epic-red); }
+.lh-slider::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted); border: none; cursor: pointer; }
+@media (max-width: 768px) {
+  .lh-slider { width: 40px; }
+}
 .eye-btn:hover { opacity: 1; }
 .eye-btn.hidden { opacity: 0.25; }
 .field input[type=text], .field textarea {
@@ -330,6 +353,7 @@ header {
   transition: border-color .15s; resize: vertical; line-height: 1.4;
 }
 .field input[type=text]:focus, .field textarea:focus { outline: none; border-color: var(--epic-red); }
+.field input[type=text]:disabled, .field textarea:disabled { opacity: 0.4; cursor: not-allowed; }
 .hint { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
 
 /* ── Foto tabs ── */
@@ -429,10 +453,7 @@ header {
   border-radius: 50%; background: var(--epic-red); cursor: pointer;
 }
 .slider-val { font-size: 10px; color: var(--epic-red); width: 34px; text-align: right; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-.offset-grid { display: grid; grid-template-columns: 90px 90px; gap: 8px; margin-top: 10px; align-items: end; }
-.offset-grid .field { display: flex; flex-direction: column; }
-.offset-grid .field label { margin-bottom: 4px; }
-.offset-grid .field input { width: 90px; box-sizing: border-box; }
+/* offset-grid removida — Offset X/Y não mais visível na UI */
 
 .btn-reset {
   background: none; border: 1px solid var(--border-color); color: var(--text-muted);
@@ -668,6 +689,8 @@ canvas { display: block; width: 100%; height: auto; }
 @media (max-width: 600px) {
   .mobile-only { display: flex !important; }
   .desktop-only { display: none !important; }
+  /* Mobile: oculta "Remover fundo" — processamento WASM trava em devices fracos */
+  #btnBgRemove { display: none !important; }
 
   /* --- Top bar --- */
   header {
@@ -690,10 +713,24 @@ canvas { display: block; width: 100%; height: auto; }
   }
 
   /* --- Barra de layouts --- */
-  #clienteLayoutBar { flex-direction: column; gap: 4px; padding: 6px 8px; }
+  #clienteLayoutBar { flex-direction: column; gap: 4px; padding: 6px 8px; overflow: hidden; }
   /* oculta o select de cliente original (já está no header mobile) */
   #clienteLayoutBar #clienteSelect { display: none !important; }
-  .layout-strip { padding: 2px 0; }
+  /* strip-nav-wrap contém o scroll — não deixa vazar para a página */
+  .strip-nav-wrap { overflow: hidden; width: 100%; }
+  /* strip rola internamente; padding nas duas pontas para thumbs não serem cortados */
+  #clienteLayoutBar .layout-strip {
+    padding: 2px 12px 2px 4px;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* setas de navegação ocultas no mobile (scroll touch nativo) */
+  #stripPrev, #stripNext { display: none !important; }
   /* thumbnails menores para carregar mais rápido */
   .layout-card img { width: 60px !important; height: 60px !important; }
 
@@ -775,8 +812,9 @@ canvas { display: block; width: 100%; height: auto; }
   /* --- Bottom bar --- */
   .mobile-bottom-bar {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
-    background: color-mix(in srgb, var(--panel-bg) 80%, transparent); border-top: 1px solid var(--border-color);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    background: color-mix(in srgb, var(--panel-bg) 96%, transparent); border-top: 1px solid var(--border-color);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.25);
     flex-direction: column !important;
     padding-bottom: env(safe-area-inset-bottom, 8px);
   }
@@ -853,10 +891,19 @@ canvas { display: block; width: 100%; height: auto; }
       <button id="btnFmtJpg" onclick="setExportFormato('jpg')" style="flex:1;padding:7px;border-radius:7px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.5px">JPG</button>
       <span style="flex:2;font-size:10px;color:var(--text-muted,#888);align-self:center;padding-left:6px" id="fmtHint">Suporta transparência</span>
     </div>
+    <!-- Checkboxes de formatos do set — visível apenas quando o layout pertence a um set de tamanhos -->
+    <div id="modalSalvarSetRow" style="display:none;margin-bottom:14px">
+      <p style="font-size:11px;color:var(--text-muted);font-weight:600;margin:0 0 8px 0">Formatos do set:</p>
+      <div id="modalSalvarSetList" style="display:flex;flex-direction:column;gap:7px"></div>
+    </div>
     <div style="display:flex;gap:8px">
       <button onclick="fecharModalSalvar()" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
       <button id="btnCopiarImg" onclick="copiarParaClipboard()" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit" title="Copiar imagem para a área de transferência">📋 Copiar</button>
       <button id="btnBaixarFmt" onclick="confirmarDownload()" style="flex:2;padding:9px;border-radius:8px;border:none;background:var(--epic-red);color:#fff;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:inherit">⬇ Baixar PNG</button>
+    </div>
+    <!-- Botão "Baixar todos" — visível apenas quando há checkboxes de set -->
+    <div id="modalSalvarBtnTodos" style="display:none;margin-top:8px">
+      <button onclick="confirmarDownloadSetFromModal()" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-secondary);color:var(--text-secondary);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px">⬇ Baixar selecionados (ZIP)</button>
     </div>
   </div>
 </div>
@@ -872,6 +919,20 @@ canvas { display: block; width: 100%; height: auto; }
   </div>
 </div>
 <!-- Modal Trocar Layout (isDirty) ─────────────────────────────────────────── -->
+<!-- Modal seleção de formatos para download do set -->
+<div id="modalDownloadSet" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center" onclick="if(event.target===this)document.getElementById('modalDownloadSet').style.display='none'">
+  <div style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:14px;padding:24px;width:300px;max-width:90vw;box-shadow:0 24px 64px rgba(0,0,0,0.28);font-family:inherit">
+    <p style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:14px">Escolher formatos para baixar</p>
+    <div id="modalDownloadSetList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="document.getElementById('modalDownloadSet').style.display='none'"
+        style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
+      <button onclick="confirmarDownloadSet()"
+        style="flex:2;padding:9px;border-radius:8px;border:none;background:var(--epic-red);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⬇ Baixar</button>
+    </div>
+  </div>
+</div>
+
 <div id="modalDirty" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center">
   <div style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:14px;padding:28px 28px 24px;width:100%;max-width:340px;box-shadow:0 24px 64px rgba(0,0,0,0.28);font-family:inherit">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
@@ -893,7 +954,7 @@ canvas { display: block; width: 100%; height: auto; }
   <button class="mobile-only" id="btnHamburger" onclick="_menuAbrir()">☰</button>
   <div class="logo-area">
     <h1>Banner Creator<span>.</span></h1>
-    <p>EPIC Digital · <span style="opacity:.5">v34</span></p>
+    <p>EPIC Digital · <span style="opacity:.5">v39</span></p>
   </div>
   <!-- Seletor de cliente centralizado no header — apenas desktop -->
   <select id="clienteSelect" class="desktop-only" onchange="onClienteChange()"
@@ -914,6 +975,7 @@ canvas { display: block; width: 100%; height: auto; }
 <div id="clienteLayoutBar">
   <span id="clienteLoadingMsg"></span>
   <div class="strip-nav-wrap">
+    <button class="strip-arrow" id="stripPrev" onclick="_stripScroll(-1)" title="Layouts anteriores">‹</button>
     <div class="layout-strip" id="layoutStrip">
       <p style="color:var(--muted);font-size:10px;padding:8px 0">Conecte ao Figma e selecione um cliente para ver os layouts.</p>
     </div>
@@ -1008,21 +1070,35 @@ canvas { display: block; width: 100%; height: auto; }
         </select>
       </div>
       <div class="field" id="fieldTitulo">
-        <label>Título <button class="eye-btn" id="eye-titulo" title="Mostrar/ocultar camada" onclick="toggleLayerVisible('titulo')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
+        <label>Título <span class="fs-btns"><button class="fs-btn" onclick="_adjustFontSize('titulo',-2)" title="Diminuir fonte">−</button><button class="fs-btn" onclick="_adjustFontSize('titulo',+2)" title="Aumentar fonte">+</button></span><span class="lh-wrap" title="Entrelinhas"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><input type="range" class="lh-slider" min="70" max="150" value="100" step="5" oninput="_adjustLineHeight('titulo',+this.value)"></span><button class="eye-btn" id="eye-titulo" title="Mostrar/ocultar camada" onclick="toggleLayerVisible('titulo')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
         <textarea id="titulo" rows="3">Título do banner aqui</textarea>
         <div id="fmt-titulo" class="fmt-bar" style="display:none"></div>
       </div>
       <div class="field" id="fieldTexto">
-        <label>Subtítulo <button class="eye-btn" id="eye-sub" title="Mostrar/ocultar camada" onclick="toggleLayerVisible('sub')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
-        <textarea id="sub" rows="2">Subtítulo ou corpo do texto aqui</textarea>
+        <label>Texto 1 <span class="fs-btns"><button class="fs-btn" onclick="_adjustFontSize('texto',-2)" title="Diminuir fonte">−</button><button class="fs-btn" onclick="_adjustFontSize('texto',+2)" title="Aumentar fonte">+</button></span><span class="lh-wrap" title="Entrelinhas"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><input type="range" class="lh-slider" min="70" max="150" value="100" step="5" oninput="_adjustLineHeight('texto',+this.value)"></span><button class="eye-btn" id="eye-sub" title="Mostrar/ocultar camada" onclick="toggleLayerVisible('sub')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
+        <textarea id="sub" rows="2">Texto principal aqui</textarea>
         <div id="fmt-sub" class="fmt-bar" style="display:none"></div>
       </div>
-      <!-- Campos tx1, tx2… gerados dinamicamente por buildFieldUI -->
+      <!-- Campos extras (titulo2, texto2, tag2, cta2, …) gerados dinamicamente por buildFieldUI -->
       <div id="txExtrasContainer"></div>
       <div class="field" id="fieldCTA" style="display:none">
         <label>CTA <button class="eye-btn" id="eye-cta" title="Mostrar/ocultar camada" onclick="toggleLayerVisible('cta')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
         <input type="text" id="cta" value="Chamar à ação">
       </div>
+    </div>
+
+    <!-- THUMB DO AUTOR -->
+    <div class="panel-section" id="sectionThumb">
+      <p class="sec-title">Thumb</p>
+      <div class="drop show" id="thumbDropZone">
+        <input type="file" id="thumbInput" accept="image/*">
+        <label for="thumbInput" class="drop-label">
+          <div class="drop-icon">👤</div>
+          <div class="drop-msg">Clique para carregar foto do autor</div>
+          <div class="drop-name" id="thumbDropName"></div>
+        </label>
+      </div>
+      <button type="button" class="tool-btn" id="btnClearThumb" style="display:none;width:100%;margin-top:6px;color:#b99;font-size:10px">✕ Limpar (voltar pro original)</button>
     </div>
 
     <!-- FOTO -->
@@ -1105,11 +1181,10 @@ canvas { display: block; width: 100%; height: auto; }
           <span class="slider-val" id="scaleVal">100%</span>
         </div>
       </div>
-      <div class="offset-grid">
-        <div class="field"><label>Offset X</label><input type="text" id="offX" value="0"></div>
-        <div class="field"><label>Offset Y</label><input type="text" id="offY" value="0"></div>
-      </div>
-      <button class="btn-reset" id="btnReset">↺ Resetar posição</button>
+      <!-- Offset X/Y removidos (não usados). Inputs mantidos como hidden pra não quebrar JS que lê offX/offY -->
+      <input type="hidden" id="offX" value="0">
+      <input type="hidden" id="offY" value="0">
+      <button class="btn-reset" id="btnReset" style="margin-top:8px">↺ Resetar posição</button>
     </div>
 
     <!-- EXPORTAR -->
@@ -1133,7 +1208,7 @@ canvas { display: block; width: 100%; height: auto; }
           onkeydown="if(event.key==='Enter'){_zoomFromInput(this.value);this.blur()}"
           onblur="_zoomFromInput(this.value)">
         <button class="zoom-btn" onclick="_zoomIn()" title="Zoom in">+</button>
-        <button class="zoom-btn" id="btnZoomFit" onclick="_zoomFit()" title="Fit to screen" style="font-size:9px;letter-spacing:.5px;width:auto;padding:0 7px">Fit</button>
+        <button class="zoom-btn" id="btnZoomFit" onclick="_zoomFit()" title="Fit to screen" style="font-size:9px;letter-spacing:.5px;width:auto;padding:0 14px;min-width:44px">Fit</button>
       </div>
     </div>
     <!-- Zoom bar mobile — visível apenas no mobile após carregar layout -->
@@ -1148,7 +1223,7 @@ canvas { display: block; width: 100%; height: auto; }
           onkeydown="if(event.key==='Enter'){_zoomFromInput(this.value);this.blur()}"
           onblur="_zoomFromInput(this.value)">
         <button class="zoom-btn" onclick="_zoomIn()">+</button>
-        <button class="zoom-btn" onclick="_zoomFit()" style="font-size:9px;width:auto;padding:0 7px">Fit</button>
+        <button class="zoom-btn" onclick="_zoomFit()" style="font-size:9px;width:auto;padding:0 14px;min-width:44px">Fit</button>
       </div>
       <!-- Direita: arrastar e flip -->
       <div class="mob-zoom-actions">
@@ -1255,8 +1330,23 @@ function toggleTheme() {
 // ══════════════════════════════════════════════════════════
 // CONSTANTES
 // ══════════════════════════════════════════════════════════
-const FIGMA_FILE_KEY    = 'yLEcNJEiQNSjNPsFRwfzfj';
+// File key padrão (fallback quando /config não retorna cliente ativo)
+let FIGMA_FILE_KEY = 'yLEcNJEiQNSjNPsFRwfzfj';
+// Flag: servidor configurou token+fileKey via /config (não pedir modal ao operador)
+let _serverConfigured = false;
 const TOKEN_STORAGE_KEY = 'figma_token';
+
+// HARDCODED para GitHub Pages (provisório — TODO: migrar pra /config + backend Render).
+// Token double-base64 encoded só pra evitar o secret scanner do GitHub. NÃO é segurança real:
+// qualquer pessoa com DevTools extrai com `atob` no console. Risco aceito por ora.
+const _BUILTIN_CONFIG_B64 = 'eyJjbGllbnRzIjpbeyJuYW1lIjoiTHVjaWFubyBFcGljIiwidG9rZW4iOiJabWxuWkY5b1NFSXlUbGRtZDNSWFNXNWZTMVExUnprME9XdDZPUzFzZERaeFpFRmZhVWs0VFU1aWJtTlYiLCJmaWxlS2V5IjoieUxFY05KRWlRTlNqTlBzRlJ3ZnpmaiJ9LHsibmFtZSI6IlRlY2hmaW5vIiwidG9rZW4iOiJabWxuWkY5b1NFSXlUbGRtZDNSWFNXNWZTMVExUnprME9XdDZPUzFzZERaeFpFRmZhVWs0VFU1aWJtTlYiLCJmaWxlS2V5IjoiUXh4R3VYemQ0c0JNOFFGMzZ3bGtpVCJ9XSwiYWN0aXZlQ2xpZW50IjoiVGVjaGZpbm8ifQ==';
+function _decodeBuiltinConfig() {
+  try {
+    const cfg = JSON.parse(atob(_BUILTIN_CONFIG_B64));
+    cfg.clients?.forEach(c => { if (c.token) c.token = atob(c.token); });
+    return cfg;
+  } catch { return null; }
+}
 
 // ══════════════════════════════════════════════════════════
 // ESTADO GLOBAL
@@ -1313,14 +1403,94 @@ function selectLayoutDebounced(id) {
 }
 
 const foto = { img: null, ox: 0, oy: 0, scale: 1, flipH: false };
+// Thumb (avatar circular do autor) — sem ajustes manuais, só upload
+const thumb = { img: null, isTransparent: false };
 let isDragging = false, dragStartX, dragStartY, dragStartOx, dragStartOy;
 let dragMode   = false;
 
 // S1 — rastreia se o operador fez edições não exportadas
 let _isDirty = false;
+// Flag de loading: true entre selectLayout() e ldDone(). Usado para desabilitar inputs gerados dinamicamente.
+let _isLoadingLayout = false;
+// Override de fontSize por campo: chave = field key (titulo, texto, tag, cta, titulo2…), valor = delta em px
+const _fieldFontSizeOverride = {};
+
+// Aumenta ou diminui o fontSize de um campo (delta em px, +2 ou -2)
+function _adjustFontSize(fieldKey, delta) {
+  if (!_fieldFontSizeOverride[fieldKey]) _fieldFontSizeOverride[fieldKey] = 0;
+  _fieldFontSizeOverride[fieldKey] += delta;
+  // Clamp: não permite ficar menor que 8px
+  const baseFontSize = activeLayoutMeta?.fields?.[fieldKey]?.textStyle?.fontSize || 16;
+  const finalSize = baseFontSize + _fieldFontSizeOverride[fieldKey];
+  if (finalSize < 8) _fieldFontSizeOverride[fieldKey] = 8 - baseFontSize;
+  _wrapCache.clear();
+  _rangesStyledCache.clear();
+  drawDebounced();
+}
+// Retorna o fontSize efetivo (base + override)
+function _getEffectiveFontSize(fieldKey, baseFontSize) {
+  return Math.max(8, baseFontSize + (_fieldFontSizeOverride[fieldKey] || 0));
+}
+
+// Override de lineHeight por campo: chave = field key, valor = multiplicador (1.0 = 100% do Figma)
+const _fieldLineHeightOverride = {};
+
+// Ajusta o multiplicador de lineHeight de um campo (via slider, valor 70–150 = porcentagem)
+function _adjustLineHeight(fieldKey, pct) {
+  _fieldLineHeightOverride[fieldKey] = pct / 100;
+  _wrapCache.clear();
+  _rangesStyledCache.clear();
+  drawDebounced();
+}
+// Retorna o lineHeight efetivo (base × multiplicador)
+function _getEffectiveLineHeight(fieldKey, baseLH) {
+  const mult = _fieldLineHeightOverride[fieldKey] || 1.0;
+  return Math.round(baseLH * mult);
+}
 
 // Visibilidade de camadas de texto no canvas (olho ao lado do rótulo)
-const _layerVisible = { tag: true, titulo: true, sub: true, cta: true };
+// Populado dinamicamente pelo buildFieldUI conforme os fields do layout ativo
+const _layerVisible = {};
+
+// Helpers de field keys (titulo, titulo2, texto, texto2, tag, tag2, cta, ctatx, cta2, ctatx2…)
+// _fieldType: extrai o tipo-base ignorando o índice numérico
+function _fieldType(key) {
+  const m = /^(titulo|texto|tag|cta|ctatx)(\d*)$/i.exec(key || '');
+  return m ? m[1].toLowerCase() : null;
+}
+// _fieldIndex: 1 para instância principal (sem sufixo), N para instâncias extras
+function _fieldIndex(key) {
+  const m = /^(titulo|texto|tag|cta|ctatx)(\d*)$/i.exec(key || '');
+  if (!m) return null;
+  return m[2] ? parseInt(m[2], 10) : 1;
+}
+// _fieldLabel: rótulo exibido na UI.
+// Regra: 'texto' SEMPRE leva número (Texto 1, Texto 2…); demais (titulo, tag, cta) só ganham número quando >1
+function _fieldLabel(key) {
+  const t = _fieldType(key); const i = _fieldIndex(key);
+  if (!t) return key;
+  const base = { titulo: 'Título', texto: 'Texto', tag: 'Tag', cta: 'CTA', ctatx: 'CTA' }[t] || t;
+  if (t === 'texto') return `${base} ${i}`;
+  return i > 1 ? `${base} ${i}` : base;
+}
+// _getFieldInputId: ID do elemento <input>/<textarea> associado à key.
+// Instâncias principais mantêm IDs legados (titulo, sub, tag, cta) pra não quebrar código existente.
+// Instâncias extras usam prefixo field_ (ex: field_titulo2, field_texto2, field_cta2).
+function _getFieldInputId(key) {
+  if (key === 'titulo') return 'titulo';
+  if (key === 'texto')  return 'sub';
+  if (key === 'tag')    return 'tag';
+  if (key === 'cta' || key === 'ctatx') return 'cta';
+  return 'field_' + key;
+}
+// _isTextLayoutKey: keys de texto que participam do layout (inclui cta frame, exclui ctatx por ser o texto dentro do frame)
+function _isTextLayoutKey(key) {
+  return /^(titulo|texto|tag|cta)(\d*)$/.test(key || '');
+}
+// _isAllTextKey: inclui ctatx também (usado para iteração geral de valores/ranges)
+function _isAllTextKey(key) {
+  return /^(titulo|texto|tag|cta|ctatx)(\d*)$/.test(key || '');
+}
 
 // Ícones SVG para o botão de olho (aberto / fechado)
 const _eyeIconOpen   = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
@@ -1328,11 +1498,24 @@ const _eyeIconClosed = `<svg width="13" height="13" viewBox="0 0 24 24" fill="no
 
 function toggleLayerVisible(key) {
   _layerVisible[key] = !_layerVisible[key];
+  // Alias legacy: o HTML usa eye-sub / onclick toggleLayerVisible('sub'), mas o parser usa "texto".
+  // Mantém os dois espelhados.
+  if (key === 'sub')   _layerVisible.texto = _layerVisible.sub;
+  if (key === 'texto') _layerVisible.sub   = _layerVisible.texto;
   const btn = document.getElementById('eye-' + key);
   if (btn) {
     btn.innerHTML = _layerVisible[key] ? _eyeIconOpen : _eyeIconClosed;
     btn.classList.toggle('hidden', !_layerVisible[key]);
     btn.title = _layerVisible[key] ? 'Ocultar camada' : 'Mostrar camada';
+  }
+  // Sincroniza o botão olho do alias também (eye-sub ↔ eye-texto, se ambos existirem)
+  const altKey = key === 'sub' ? 'texto' : key === 'texto' ? 'sub' : null;
+  if (altKey) {
+    const altBtn = document.getElementById('eye-' + altKey);
+    if (altBtn) {
+      altBtn.innerHTML = _layerVisible[key] ? _eyeIconOpen : _eyeIconClosed;
+      altBtn.classList.toggle('hidden', !_layerVisible[key]);
+    }
   }
   drawDebounced();
 }
@@ -1451,6 +1634,16 @@ function ldStep(stepKey, label) {
   if (pctEl) pctEl.textContent = pct + '%';
 }
 
+// Bloqueia/desbloqueia todos os campos de texto editáveis durante o carregamento do layout
+function _setInputsDisabled(disabled) {
+  for (const id of ['titulo', 'sub', 'tag', 'cta']) {
+    const el = document.getElementById(id);
+    if (el) el.disabled = disabled;
+  }
+  // Inputs dinâmicos de todas as instâncias extras (field_titulo2, field_texto2, field_tag2, field_cta2, …)
+  document.querySelectorAll('textarea[id^="field_"], input[id^="field_"]').forEach(el => { el.disabled = disabled; });
+}
+
 function ldDone() {
   const bar = document.getElementById('ldBar');
   const pctEl = document.getElementById('ldPct');
@@ -1462,6 +1655,9 @@ function ldDone() {
     const el = document.getElementById('canvasLoading');
     if (el) { el.classList.remove('visible'); el.classList.add('done'); }
   }, 420);
+  // Libera campos de texto após carregamento completo
+  _isLoadingLayout = false;
+  _setInputsDisabled(false);
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1524,6 +1720,12 @@ function resetFigmaToken() {
 // ══════════════════════════════════════════════════════════
 // ── Modal de token ────────────────────────────────────────────────────────────
 function mostrarModalToken(erroMsg) {
+  // Se o servidor tem config ativa, não mostra modal pro operador (token é gerenciado no /config)
+  if (_serverConfigured) {
+    dbg('mostrarModalToken: suprimido (servidor configurado). Erro: ' + (erroMsg || 'nenhum'));
+    if (erroMsg) setStatus('Token do servidor expirou ou inválido — avise o admin.', 'err');
+    return;
+  }
   const modal = document.getElementById('tokenModal');
   modal.style.display = 'flex';
   document.getElementById('modalTokenInput').value = '';
@@ -1643,11 +1845,15 @@ async function discoverAndBuildLayouts(layoutPageId) {
     const frames = (pageNode.children || []).filter(n => n.type === 'FRAME');
     if (!frames.length) { strip.innerHTML = '<p style="color:var(--muted);font-size:10px">Nenhum frame encontrado.</p>'; return; }
 
+    // Detecta se o segmento final do nome é uma dimensão (ex: "1080x1080", "1200x628")
+    const _isSizeName = s => /^\d+x\d+$/i.test((s || '').trim());
+
     _discoveredLayouts = frames.map(f => {
       const bb = f.absoluteBoundingBox || {};
-      // Variantes: frames com 3+ segmentos no nome (ex: layout/01/small)
+      // Variantes: frames com 3+ segmentos no nome (ex: layout/01/small ou layout/01/1080x1080)
       const parts = f.name.split('/');
       const isVariant = parts.length >= 3;
+      const lastName  = parts[parts.length - 1];
       return {
         id: f.id,
         label: f.name,
@@ -1660,8 +1866,9 @@ async function discoverAndBuildLayouts(layoutPageId) {
         defaultFotoOffset: { ox: 0, oy: 0, scale: 1, flipH: false },
         loaded: false,
         variantGroup:     isVariant ? parts.slice(0, -1).join('/') : f.name,
-        variantName:      isVariant ? parts[parts.length - 1] : null,
+        variantName:      isVariant ? lastName : null,
         isDefaultVariant: !isVariant,
+        isSizeVariant:    isVariant && _isSizeName(lastName), // true para "1080x1080" etc.
       };
     });
 
@@ -1671,7 +1878,13 @@ async function discoverAndBuildLayouts(layoutPageId) {
       (_variantIndex[m.variantGroup] ??= []).push(m);
     }
     for (const key in _variantIndex) {
-      _variantIndex[key].sort((a, b) => a.isDefaultVariant ? -1 : 1);
+      const group = _variantIndex[key];
+      // Grupos sem frame raiz (todos isSizeVariant) → eleger o primeiro como default sintético
+      if (!group.some(m => m.isDefaultVariant)) {
+        group[0].isDefaultVariant  = true;
+        group[0].isSyntheticDefault = true;
+      }
+      group.sort((a, b) => a.isDefaultVariant ? -1 : 1);
     }
 
     dbg('layouts encontrados: ' + _discoveredLayouts.map(l => l.label).join(', '));
@@ -2065,12 +2278,23 @@ function walkNodes(node, frameX, frameY, meta) {
   // ── field:* ──────────────────────────────────────────────
   if (name.toLowerCase().startsWith('field:')) {
     const _rawKey = name.slice(6).toLowerCase().trim();
-    // Normalização de aliases:
-    //   field:tx        → field:texto (mesmo campo)
-    //   field:texto1/2… → field:tx1/2… (convenção numérica unificada)
+    // Nova convenção semântica: (titulo|texto|tag|cta|ctatx)(\d*) — instância principal sem sufixo,
+    // adicionais com sufixo numérico a partir de 2. Ex: titulo, titulo2, titulo3, texto, texto2…
+    //
+    // Normalizações:
+    //   field:titulo1 / texto1 / tag1 / cta1 / ctatx1  → "titulo" / "texto" / … (sufixo 1 = primária)
+    //   field:tx                                        → "texto" (retrocompat antiga)
+    //   field:tx1                                       → "texto2" (retrocompat — antes virava "tx1")
+    //   field:tx2 / tx3 …                               → "texto3" / "texto4" …
     let key = _rawKey;
     if (key === 'tx') key = 'texto';
-    else if (/^texto(\d+)$/.test(key)) key = 'tx' + key.match(/\d+/)[0];
+    else {
+      const mTx = /^tx(\d+)$/.exec(key);
+      if (mTx) key = 'texto' + (parseInt(mTx[1], 10) + 1);
+    }
+    // Sufixo "1" equivale a primária: field:texto1 === field:texto
+    const mSuffix1 = /^(titulo|texto|tag|cta|ctatx)1$/.exec(key);
+    if (mSuffix1) key = mSuffix1[1];
     // field:olhos: sempre atualiza (walkNodes roda 2× — discoverLayouts + extractLayoutMeta)
     if (key === 'olhos') {
       meta.olhosBox = { x, y, w, h, cx: x + w / 2, cy: y + h / 2 };
@@ -2086,8 +2310,8 @@ function walkNodes(node, frameX, frameY, meta) {
       const fieldDef = { nodeId: node.id, x, y, w, h, textStyle, textBB };
       // Armazena texto bruto do nó para pré-popular os inputs com o conteúdo real do Figma
       if (node.type === 'TEXT' && node.characters) fieldDef.characters = node.characters;
-      // field:foto: extrai imageTransform do fill de imagem para replicar o crop do Figma
-      if (key === 'foto') {
+      // field:foto e field:thumb: extrai imageTransform do fill de imagem para replicar o crop do Figma
+      if (key === 'foto' || key === 'thumb') {
         let imgFill = (node.fills || []).find(f => f.type === 'IMAGE');
         if (!imgFill) {
           for (const child of (node.children || [])) {
@@ -2098,7 +2322,7 @@ function walkNodes(node, frameX, frameY, meta) {
         if (imgFill?.imageTransform) {
           fieldDef.imageTransform = imgFill.imageTransform;
           fieldDef.scaleMode = imgFill.scaleMode || 'FILL';
-          dbg(`field:foto imageTransform detectado scaleMode=${fieldDef.scaleMode}`);
+          dbg(`field:${key} imageTransform detectado scaleMode=${fieldDef.scaleMode}`);
         }
       }
       // field:cta: extrai fill do botão para renderização programática (sem PNG)
@@ -2135,6 +2359,16 @@ function walkNodes(node, frameX, frameY, meta) {
     meta.fotoMaskBox = { x, y, w, h };
     dbg('maskFoto detectada: ' + node.id);
   }
+
+  // ── maskThumb: máscara do thumb (avatar circular do autor) ──────────────
+  // Aceita qualquer nome contendo "thumb" + "mask" (case-insensitive): maskThumb, MaskThumb, thumbMask, mask-thumb…
+  const _nLower = name.toLowerCase();
+  if (!meta.thumbMaskNodeId && /thumb/.test(_nLower) && /mask/.test(_nLower)) {
+    meta.thumbMaskNodeId = node.id;
+    meta.thumbMaskBox = { x, y, w, h };
+    dbg(`maskThumb detectada: "${name}" (${node.id})`);
+  }
+
 
   // ── blocoGlass: container de texto com blur dinâmico ─────────────────────
   if (name === 'blocoGlass' && !meta.glassBox) {
@@ -2236,6 +2470,9 @@ async function extractLayoutMeta(meta) {
   meta.fotoMaskNodeId = null;
   meta.fotoMaskBox    = null;
   meta.fotoMaskImg    = null;
+  meta.thumbMaskNodeId = null;
+  meta.thumbMaskBox    = null;
+  meta.thumbMaskImg    = null;
   meta.layerDefs      = null;
   meta.layerOrder     = null;
   meta.attachedAssets = [];
@@ -2249,8 +2486,112 @@ async function extractLayoutMeta(meta) {
     }
   }
 
+  // Inventário diagnóstico: lista todos os top-level layers do frame (ajuda a achar elementos sem nomenclatura)
+  const _topLevelNames = (frameNode.children || []).map(c => `"${c.name || '?'}"(${c.type})`);
+  dbg(`top-level layers (${_topLevelNames.length}): ${_topLevelNames.join(', ')}`);
+
   for (const child of (frameNode.children || [])) {
     walkNodes(child, frameX, frameY, meta);
+  }
+
+  // Helpers para localizar nós e detectar descendentes field:*
+  function _findById(node, id) {
+    if (node.id === id) return node;
+    for (const c of (node.children || [])) { const r = _findById(c, id); if (r) return r; }
+    return null;
+  }
+  function _hasFieldDescendant(node) {
+    if ((node.name || '').toLowerCase().startsWith('field:')) return true;
+    return (node.children || []).some(_hasFieldDescendant);
+  }
+
+  // Coleta decorativos dentro de blocoTX/blocoGlass: vetores, textos e formas que NÃO são field/asset/blocoTag.
+  // Sem essa lógica, qualquer elemento de design colocado dentro do bloco pelo diretor de arte é perdido
+  // (porque o bloco é renderizado dinamicamente, não como PNG).
+  meta.decorativeLayers = [];
+  for (const blockName of ['blocoTX', 'blocoGlass']) {
+    const blockNodeId = blockName === 'blocoTX' ? meta.blocoTX?.nodeId : meta.glassBox?.nodeId;
+    if (!blockNodeId) continue;
+    const blockNode = _findById(frameNode, blockNodeId);
+    if (!blockNode) continue;
+    const blockBB = blockNode.absoluteBoundingBox;
+    if (!blockBB) continue;
+
+    // Tipos de nó que NÃO podem (ou não devem) ser exportados como PNG individualmente
+    const _UNEXPORTABLE_TYPES = new Set(['SECTION', 'CANVAS', 'DOCUMENT', 'COMPONENT_SET']);
+
+    // Coleta o índice z-order do field:* dentro do bloco (para saber o que vai ABAIXO vs ACIMA do texto)
+    // Convenção Figma: children[0] = mais ao FUNDO, children[last] = mais à FRENTE
+    let _fieldZIndex = -1; // índice no array de children do block onde está o(s) field:* (usa o primeiro encontrado)
+    for (let _i = 0; _i < (blockNode.children || []).length; _i++) {
+      const _ch = blockNode.children[_i];
+      function _hasField(n) {
+        if ((n.name || '').toLowerCase().startsWith('field:')) return true;
+        return (n.children || []).some(_hasField);
+      }
+      if (_hasField(_ch)) { _fieldZIndex = _i; break; }
+    }
+
+    // Recursão: se um filho contém field:*, entra nele para extrair seus IRMÃOS não-field.
+    // Filhos puros (sem field aninhado) são capturados como uma unidade (um PNG).
+    // zParentIndex = índice do nó-pai no nível do bloco (preserva ordem relativa ao field)
+    function _collectDeco(parent, zParentIndex) {
+      const childList = parent.children || [];
+      for (let _i = 0; _i < childList.length; _i++) {
+        const child = childList[_i];
+        const name  = (child.name || '').trim();
+        const lower = name.toLowerCase();
+        // Skip já tratados:
+        if (lower.startsWith('field:')) continue;
+        if (lower.startsWith('asset/')) continue;
+        if (name === 'blocoTag') continue;
+        if (/^blocoTX\d*$/i.test(name)) continue;
+        if (name === 'blocoGlass') continue;
+        // Skip tipos não exportáveis e nós sem ID
+        if (!child.id) continue;
+        if (_UNEXPORTABLE_TYPES.has(child.type)) continue;
+
+        // zIndex efetivo: usa o índice do pai (no nível do bloco) se aninhado, senão o próprio índice
+        const zEff = zParentIndex != null ? zParentIndex : _i;
+
+        // Se este nó tem field:* aninhado, NÃO captura como unidade — entra pra pegar irmãos não-field
+        if (_hasFieldDescendant(child)) {
+          _collectDeco(child, zEff);
+          continue;
+        }
+        // Sem bounding box → não é desenhável; recurse mesmo assim (caso filhos tenham bb)
+        const bb = child.absoluteBoundingBox;
+        if (!bb) { _collectDeco(child, zEff); continue; }
+        // Visibilidade respeitada
+        if (child.visible === false) continue;
+        // Tamanho zero → pula (nada para renderizar e Figma pode rejeitar export)
+        if (bb.width <= 0 || bb.height <= 0) continue;
+
+        meta.decorativeLayers.push({
+          nodeId: child.id,
+          name:   name || child.type,
+          type:   child.type,
+          bb: {
+            x: Math.round(bb.x - frameX),
+            y: Math.round(bb.y - frameY),
+            w: Math.round(bb.width),
+            h: Math.round(bb.height),
+          },
+          relY: Math.round(bb.y - blockBB.y), // offset relativo ao bloco (acompanha deltaY do reflow)
+          parentBlockId: blockNode.id,
+          zIndex: zEff,
+          // belowFields = decorativo está no Figma ABAIXO do field:* (zIndex menor) → render antes do texto
+          // aboveFields = está ACIMA → render depois do texto
+          belowFields: _fieldZIndex < 0 || zEff < _fieldZIndex,
+          img: null, // preenchido por loadLayerImages
+        });
+      }
+    }
+    _collectDeco(blockNode, null);
+  }
+  if (meta.decorativeLayers.length) {
+    const _names = meta.decorativeLayers.map(d => `"${d.name}"@(${d.bb.x},${d.bb.y})`);
+    dbg(`decorativos extraídos de blocos (${meta.decorativeLayers.length}): ${_names.join(', ')}`);
   }
 
   // Catalogar assets geometricamente dentro do blocoTX ou blocoGlass (movem junto com o bloco)
@@ -2430,9 +2771,27 @@ function _fmtBuildBar(id) {
   btnReset.textContent = '✕ limpar';
   btnReset.addEventListener('mousedown', e => {
     e.preventDefault();
-    _fieldFormatRanges[id] = [];
+    const el = document.getElementById(id);
+    const len = el ? el.value.length : 0;
+    // Busca a cor padrão do campo no Figma.
+    // Mapeamento ID → key: 'sub'→'texto'; 'field_titulo2'→'titulo2'; demais primárias = mesmo nome
+    let fieldKey;
+    if (id === 'sub') fieldKey = 'texto';
+    else if (id.startsWith('field_')) fieldKey = id.slice(6);
+    else fieldKey = id;
+    const meta = activeLayoutMeta;
+    const fieldDef = meta?.fields[fieldKey];
+    const isDark = (meta?.bgColor && meta.bgColor.match(/rgba?\((\d+),(\d+),(\d+)/))
+      ? (0.299 * +RegExp.$1 + 0.587 * +RegExp.$2 + 0.114 * +RegExp.$3) < 128
+      : true;
+    const defColor = fieldDef?.textStyle?.color
+                  || meta?.fields.texto?.textStyle?.color
+                  || (isDark ? '#fdfdfd' : '#0c0a08');
+    // Range cobrindo tudo: bold:false + cor padrão do campo (reseta teal, laranja, etc.)
+    _fieldFormatRanges[id] = len > 0 ? [{ start: 0, end: len, bold: false, color: defColor }] : [];
+    _rangesStyledCache.clear();
+    _wrapCache.clear();
     draw();
-    _fmtSyncBar(id);
   });
   bar.appendChild(btnReset);
 }
@@ -2485,9 +2844,8 @@ function _aplicarRangesSobreBase(text, styledWordsBase, ranges, defWeight) {
     for (const r of ranges) {
       if (pos.start < r.end && pos.end > r.start) {
         if (r.bold === true)       weight = 800;
-        // se a palavra era bold no Figma (≥600): vai para peso mínimo não-bold (pelo menos 400)
-        // se era normal no Figma (<600): volta exatamente ao peso Figma daquela palavra
-        else if (r.bold === false) weight = sw.weight >= 600 ? Math.max(defWeight ?? 400, 400) : sw.weight;
+        // bold:false sempre força 400 — garante que "limpar" remove bold mesmo quando o campo tem fontWeight 700 por padrão
+        else if (r.bold === false) weight = 400;
         if (r.color)               color  = r.color;
       }
     }
@@ -2576,10 +2934,6 @@ function _coletarDesignColors(meta) {
 function validarNomesLayout(meta, layoutName) {
   const warns = [];
 
-  // Container de texto principal ausente (ex: "tx" em vez de "blocoTX")
-  if (meta.fields.titulo && !meta.blocoTX && !meta.glassBox)
-    warns.push({ layer: 'container de texto', fix: 'renomear para "blocoTX" ou "blocoGlass"' });
-
   // Pill de tag sem container visual nomeado corretamente
   if (meta.fields.tag && !meta.tagPillFrame)
     warns.push({ layer: 'container da pill de tag', fix: 'renomear para "blocoTag"' });
@@ -2589,6 +2943,19 @@ function validarNomesLayout(meta, layoutName) {
   // CTA sem layer de texto interno (field:ctatx deve existir com opacity 0)
   if (meta.fields.cta && !meta.fields.ctatx)
     warns.push({ layer: 'texto do CTA (ausente)', fix: 'criar layer "field:ctatx" com opacity 0 dentro de "field:cta"' });
+
+  // CTAs adicionais sem par ctatxN → ignorados no render, avisa o designer
+  Object.keys(meta.fields)
+    .filter(k => /^cta\d+$/.test(k))
+    .forEach(ctaKey => {
+      const idx = ctaKey.replace('cta', '');
+      const ctatxKey = 'ctatx' + idx;
+      if (!meta.fields[ctatxKey])
+        warns.push({
+          layer: `texto do CTA ${idx} (ausente)`,
+          fix: `criar layer "field:${ctatxKey}" com opacity 0 dentro de "field:${ctaKey}"`
+        });
+    });
 
   if (warns.length)
     warns.forEach(w => dbg(`⚠️ [${layoutName}] ${w.layer}: ${w.fix}`));
@@ -2660,10 +3027,25 @@ async function loadLayoutAssets(meta) {
   }
   if (!nodeIdSet.size) return {};
 
-  const ids = [...nodeIdSet].join(',');
-  dbg('exportando ' + nodeIdSet.size + ' assets...');
-  const data = await figmaGet(`/images/${FIGMA_FILE_KEY}?ids=${encodeURIComponent(ids)}&format=png&scale=2`);
-  const imgMap = data.images || {};
+  const allIds = [...nodeIdSet];
+  dbg('exportando ' + allIds.length + ' assets...');
+
+  // Chunking: divide em batches de 5 IDs para evitar timeout do Figma
+  // (alguns layouts com BOOLEAN_OPERATION + grupos pesados travam quando tudo vai junto)
+  const CHUNK_SIZE = 5;
+  const imgMap = {};
+  for (let _i = 0; _i < allIds.length; _i += CHUNK_SIZE) {
+    const _chunk = allIds.slice(_i, _i + CHUNK_SIZE);
+    const _idsStr = _chunk.join(',');
+    try {
+      const _data = await figmaGet(`/images/${FIGMA_FILE_KEY}?ids=${encodeURIComponent(_idsStr)}&format=png&scale=2`);
+      Object.assign(imgMap, _data.images || {});
+      dbg(`assets chunk ${Math.floor(_i/CHUNK_SIZE)+1}/${Math.ceil(allIds.length/CHUNK_SIZE)} ok (${_chunk.length} ids)`);
+    } catch (e) {
+      dbg(`assets chunk ${Math.floor(_i/CHUNK_SIZE)+1} FALHOU (${_chunk.length} ids): ${e.message}`);
+      // Continua com os próximos chunks — não perde tudo se um falhar
+    }
+  }
 
   const assets = {};
   // P2 — carrega todos os assets em paralelo (antes era loop sequencial com await)
@@ -2729,6 +3111,9 @@ function getLayoutClass(W, H) {
   return 'lc-tall';
 }
 
+// Formata dimensão substituindo x por × (ex: "1080x1080" → "1080×1080")
+function _formatSize(s) { return (s || '').replace(/x/gi, '×'); }
+
 function buildLayoutCards(layouts) {
   const strip = document.getElementById('layoutStrip');
   strip.innerHTML = '';
@@ -2737,16 +3122,34 @@ function buildLayoutCards(layouts) {
     // Variantes não-default não geram card próprio — aparecem como botão no card padrão
     if (!layout.isDefaultVariant) continue;
 
-    const cls = getLayoutClass(layout.W, layout.H);
+    const cls    = getLayoutClass(layout.W, layout.H);
     const thumbW = cls === 'lc-square' ? 150 : cls === 'lc-portrait' ? 120 : 84;
 
-    // Botões de sub-variante (ex: ▸ small), se existirem
-    const siblings = (_variantIndex[layout.variantGroup] || []).filter(m => !m.isDefaultVariant);
-    const variantStripHtml = siblings.length > 0
-      ? `<div class="lc-variant-strip">${siblings.map(s =>
-          `<button class="lc-variant-btn" data-id="${s.id}">▸ ${s.variantName}</button>`
-        ).join('')}</div>`
-      : '';
+    const siblings  = (_variantIndex[layout.variantGroup] || []).filter(m => !m.isDefaultVariant);
+    // Size set: default sintético (sem frame raiz) OU todos os siblings têm isSizeVariant
+    const isSizeSet = layout.isSyntheticDefault || (siblings.length > 0 && siblings.every(s => s.isSizeVariant));
+
+    // Label: size set mostra o variantGroup; variante de fonte mostra o label original
+    const cardLabel = isSizeSet ? layout.variantGroup : layout.label;
+
+    let variantStripHtml = '';
+    if (siblings.length > 0) {
+      if (isSizeSet) {
+        // Size set: todos os membros do grupo como botões de dimensão (incluindo o default)
+        const allMembers = _variantIndex[layout.variantGroup] || [];
+        variantStripHtml =
+          `<div class="lc-variant-strip lc-size-strip">${allMembers.map(s =>
+            `<button class="lc-variant-btn lc-size-btn" data-id="${s.id}">${_formatSize(s.variantName || s.W+'×'+s.H)}</button>`
+          ).join('')}</div>` +
+          `<button class="lc-dl-set-btn" data-group="${layout.variantGroup}">⬇ Baixar formatos</button>`;
+      } else {
+        // Variante de fonte: comportamento original
+        variantStripHtml =
+          `<div class="lc-variant-strip">${siblings.map(s =>
+            `<button class="lc-variant-btn" data-id="${s.id}">▸ ${s.variantName}</button>`
+          ).join('')}</div>`;
+      }
+    }
 
     const card = document.createElement('div');
     card.className = `layout-card ${cls}`;
@@ -2754,7 +3157,7 @@ function buildLayoutCards(layouts) {
     card.innerHTML = `
       <img class="lc-skeleton" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
            style="width:${thumbW}px;height:110px;object-fit:cover;" crossorigin="anonymous">
-      <div class="lc-label">${layout.label}</div>
+      <div class="lc-label">${cardLabel}</div>
       <div class="lc-check">
         <svg viewBox="0 0 10 8" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="1 4 4 7 9 1"/>
@@ -2763,19 +3166,22 @@ function buildLayoutCards(layouts) {
       ${variantStripHtml}
     `;
     card.addEventListener('click', () => {
-      // S1 — abre modal de confirmação se há edições não exportadas
       if (_isDirty && activeLayoutMeta && activeLayoutMeta.id !== layout.id) {
         _modalDirtyAbrir(layout.id); return;
       }
       selectLayoutDebounced(layout.id);
     });
-    // Botões de variante: trocar preservando texto do usuário
+    // Botões de variante/tamanho: trocar preservando texto
     card.querySelectorAll('.lc-variant-btn').forEach(btn => {
       btn.addEventListener('click', e => { e.stopPropagation(); switchVariant(btn.dataset.id); });
     });
+    // Botão de download do set
+    card.querySelector('.lc-dl-set-btn')?.addEventListener('click', e => {
+      e.stopPropagation();
+      downloadSet(e.currentTarget.dataset.group);
+    });
     strip.appendChild(card);
   }
-  // Atualiza seta após montar os cards (aguarda o layout DOM recalcular)
   setTimeout(_stripUpdateArrows, 100);
 }
 
@@ -2789,7 +3195,7 @@ function buildFieldUI(meta) {
   const showTag    = !!fields.tag || !!meta.tagPillFrame;
   const showTitulo = !hasAnyField || !!fields.titulo;
   const showTexto  = !hasAnyField || !!fields.texto;
-  const showCTA    = !!fields.cta && !!fields.ctatx; // ambos obrigatórios: FRAME visual + TEXT editável
+  const showCTA    = !!fields.cta && !!fields.ctatx; // primária: ambos obrigatórios (FRAME + TEXT filho)
 
   dbg(`buildFieldUI: tag=${showTag} titulo=${showTitulo} texto=${showTexto} cta=${showCTA} | fields=${Object.keys(fields).join(',')} tagPill=${!!meta.tagPillFrame}`);
   document.getElementById('sectionTag').style.display   = showTag    ? '' : 'none';
@@ -2817,9 +3223,41 @@ function buildFieldUI(meta) {
   _wrapCache.clear();
   _rangesStyledCache.clear();
   _isDirty = false; // S1 — layout novo carregado, estado limpo
+  // Reset de overrides de fontSize e lineHeight (cada layout começa com o tamanho do Figma)
+  for (const k of Object.keys(_fieldFontSizeOverride)) delete _fieldFontSizeOverride[k];
+  for (const k of Object.keys(_fieldLineHeightOverride)) delete _fieldLineHeightOverride[k];
 
-  // Reset visibilidade de camadas ao trocar de layout
-  for (const k of Object.keys(_layerVisible)) _layerVisible[k] = true;
+  // Reset thumb (uploads não persistem entre layouts, igual à foto principal)
+  thumb.img = null;
+  thumb.isTransparent = false;
+  const _btnClearThumb = document.getElementById('btnClearThumb');
+  if (_btnClearThumb) _btnClearThumb.style.display = 'none';
+  const _thumbInput = document.getElementById('thumbInput');
+  if (_thumbInput) _thumbInput.value = '';
+  const _thumbDropName = document.getElementById('thumbDropName');
+  if (_thumbDropName) _thumbDropName.textContent = '';
+  // Mostra/oculta a seção de thumb conforme o layout tem maskThumb ou field:thumb
+  const _sectionThumb = document.getElementById('sectionThumb');
+  if (_sectionThumb) {
+    const _hasThumb = !!meta.thumbMaskNodeId || !!meta.fields.thumb;
+    _sectionThumb.style.display = _hasThumb ? '' : 'none';
+  }
+
+  // Reset visibilidade de camadas: popula _layerVisible com TODAS as keys de texto do layout
+  for (const k of Object.keys(_layerVisible)) delete _layerVisible[k];
+  const _allTextKeys = Object.keys(fields).filter(k => _isTextLayoutKey(k));
+  // Inclui também 'tag' (caso exista só como pill sem field:tag textual)
+  if (showTag && !_allTextKeys.includes('tag')) _allTextKeys.push('tag');
+  for (const k of _allTextKeys) _layerVisible[k] = true;
+  // Alias legacy: o código antigo lê _layerVisible.sub (eye-sub no HTML)
+  if (_layerVisible.texto !== undefined) _layerVisible.sub = _layerVisible.texto;
+  // Garante que as keys primárias sempre existam (se o layout não tiver o campo, fica true e sem efeito)
+  if (_layerVisible.titulo === undefined) _layerVisible.titulo = true;
+  if (_layerVisible.sub    === undefined) _layerVisible.sub    = true;
+  if (_layerVisible.tag    === undefined) _layerVisible.tag    = true;
+  if (_layerVisible.cta    === undefined) _layerVisible.cta    = true;
+
+  // Botões de olho das instâncias primárias (IDs legados)
   for (const key of ['tag', 'titulo', 'sub', 'cta']) {
     const btn = document.getElementById('eye-' + key);
     if (btn) { btn.innerHTML = _eyeIconOpen; btn.classList.remove('hidden'); btn.title = 'Ocultar camada'; }
@@ -2829,24 +3267,76 @@ function buildFieldUI(meta) {
   const btnAlignEyes = document.getElementById('btnAlignEyes');
   if (btnAlignEyes) btnAlignEyes.style.display = meta.olhosBox ? '' : 'none';
 
-  // Gera inputs dinâmicos para tx1, tx2… que existirem no template
+  // Gera inputs dinâmicos para instâncias extras: titulo2, texto2, tag2, cta2, …
+  // Ordenados por Y para seguir a ordem visual do design
+  // Estrutura HTML idêntica aos primários: <label>Label <eye/></label><textarea/><div fmt-bar/>
   const txExtrasContainer = document.getElementById('txExtrasContainer');
   if (txExtrasContainer) {
     txExtrasContainer.innerHTML = '';
-    const txKeys = Object.keys(fields)
-      .filter(k => /^tx\d+$/.test(k))
-      .sort((a, b) => parseInt(a.slice(2)) - parseInt(b.slice(2)));
-    for (const txKey of txKeys) {
-      const num = txKey.slice(2);
+    const extraKeys = Object.keys(fields)
+      .filter(k => _isTextLayoutKey(k) && _fieldIndex(k) > 1) // só instâncias adicionais (2+)
+      .sort((a, b) => (fields[a].y ?? 0) - (fields[b].y ?? 0));
+
+    const eyeBtnSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+
+    for (const key of extraKeys) {
+      const type    = _fieldType(key);
+      const label   = _fieldLabel(key);
+      const inputId = 'field_' + key;
+      const showFmt = (type === 'titulo' || type === 'texto'); // bar de formatação só faz sentido em textos longos
       const div = document.createElement('div');
       div.className = 'field';
-      div.id = 'fieldTxExtra_' + txKey;
-      div.innerHTML = `<label>Texto ${num}</label><textarea id="field_${txKey}" rows="2"></textarea>`;
+      div.id = 'fieldExtra_' + key;
+
+      // Header igual aos primários (CSS .field label cuida do estilo: vermelho, uppercase, 9px)
+      const fsBtns = `<span class="fs-btns"><button class="fs-btn" onclick="_adjustFontSize('${key}',-2)" title="Diminuir fonte">−</button><button class="fs-btn" onclick="_adjustFontSize('${key}',+2)" title="Aumentar fonte">+</button></span>`;
+      const lhSlider = (type === 'titulo' || type === 'texto')
+        ? `<span class="lh-wrap" title="Entrelinhas"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><input type="range" class="lh-slider" min="70" max="150" value="100" step="5" oninput="_adjustLineHeight('${key}',+this.value)"></span>`
+        : '';
+      const labelHtml = `<label>${label} ${fsBtns}${lhSlider}<button class="eye-btn" id="eye-${key}" title="Mostrar/ocultar camada" onclick="toggleLayerVisible('${key}')">${eyeBtnSvg}</button></label>`;
+
+      // Input
+      const inputHtml = (type === 'titulo' || type === 'texto')
+        ? `<textarea id="${inputId}" rows="2"></textarea>`
+        : `<input type="text" id="${inputId}">`;
+
+      // Fmt-bar (oculta inicialmente, populada por _fmtUpdateBar)
+      const fmtHtml = showFmt ? `<div id="fmt-${inputId}" class="fmt-bar" style="display:none"></div>` : '';
+
+      div.innerHTML = labelHtml + inputHtml + fmtHtml;
       txExtrasContainer.appendChild(div);
-      setVal('field_' + txKey, fields[txKey]?.characters);
-      // Trigger draw ao editar
-      // S2 — debounce: aguarda 150ms de pausa na digitação antes de redesenhar
-      div.querySelector('textarea').addEventListener('input', () => { drawDebounced(); });
+
+      // Para CTA extra, o texto inicial vem do ctatxN correspondente
+      if (type === 'cta') {
+        const ctatxKey = 'ctatx' + (_fieldIndex(key) > 1 ? _fieldIndex(key) : '');
+        setVal(inputId, fields[ctatxKey]?.characters);
+      } else {
+        setVal(inputId, fields[key]?.characters);
+      }
+
+      // Inicializa estado de formatação inline (igual primárias)
+      if (showFmt) {
+        _figmaOriginals[inputId]    = fields[key]?.characters || '';
+        _fieldFormatRanges[inputId] = [];
+      }
+
+      // Se o layout ainda está carregando, desabilita o input recém-criado
+      const inputEl = div.querySelector('textarea, input');
+      if (_isLoadingLayout) inputEl.disabled = true;
+
+      // Trigger draw ao editar (S2 debounce) + atualiza fmt-bar
+      inputEl.addEventListener('input', () => {
+        _isDirty = true;
+        if (showFmt) _fmtUpdateBar(inputId);
+        drawDebounced();
+      });
+      // Paste listener: limpa trailing whitespace/newlines do texto colado
+      if (type === 'titulo' || type === 'texto') {
+        inputEl.addEventListener('paste', () => _cleanTrailingOnPaste(inputEl));
+      }
+
+      // Mostra a fmt-bar ao focar (mesmo padrão usado nos primários via _fmtUpdateBar)
+      if (showFmt) _fmtUpdateBar(inputId);
     }
   }
 }
@@ -2856,6 +3346,9 @@ function buildFieldUI(meta) {
 // ══════════════════════════════════════════════════════════
 async function selectLayout(id) {
   if (activeLayoutMeta?.id === id) return;
+  // Bloqueia inputs enquanto o layout carrega — evita que edições se percam
+  _isLoadingLayout = true;
+  _setInputsDisabled(true);
   // Cancela debounce pendente (evita que clique antigo dispare após chamada direta)
   clearTimeout(_layoutSelectTimer);
   // Esconde banner de variante do layout anterior imediatamente
@@ -2867,13 +3360,15 @@ async function selectLayout(id) {
 
   document.querySelectorAll('.layout-card').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.lc-variant-btn').forEach(b => b.classList.remove('active'));
-  // Variante não-default: ativa o card do default do grupo + marca o botão da variante
   const _selMeta = _discoveredLayouts.find(l => l.id === id);
-  const _cardId = (_selMeta && !_selMeta.isDefaultVariant)
+  const _isSizeSetMember = _selMeta && (_variantIndex[_selMeta.variantGroup] || []).some(m => m.isSizeVariant);
+  // Ativa o card do default do grupo (para variantes de fonte e size sets)
+  const _cardId = (_selMeta && (!_selMeta.isDefaultVariant || _isSizeSetMember))
     ? (_variantIndex[_selMeta.variantGroup]?.find(m => m.isDefaultVariant)?.id || id)
     : id;
   document.querySelector(`.layout-card[data-id="${_cardId}"]`)?.classList.add('active');
-  if (_selMeta && !_selMeta.isDefaultVariant) {
+  // Marca o botão de dimensão/variante correspondente ao formato ativo
+  if (_selMeta && (!_selMeta.isDefaultVariant || _isSizeSetMember)) {
     document.querySelector(`.lc-variant-btn[data-id="${id}"]`)?.classList.add('active');
   }
 
@@ -3177,6 +3672,64 @@ function handleFile(file) {
 }
 
 // ══════════════════════════════════════════════════════════
+// THUMB DO AUTOR (avatar circular) — upload simples, sem ajustes
+// ══════════════════════════════════════════════════════════
+function handleThumbFile(file) {
+  if (!file) return;
+  const FORMATOS_OK = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!FORMATOS_OK.includes(file.type)) {
+    setStatus('Formato não suportado. Use JPEG, PNG ou WebP.', 'err'); return;
+  }
+  if (file.size > 25 * 1024 * 1024) {
+    setStatus('Arquivo muito grande (máximo 25 MB).', 'err'); return;
+  }
+  const i = new Image();
+  i.onload = () => {
+    thumb.img = i;
+    thumb.isTransparent = detectaAlpha(i);
+    const _btn = document.getElementById('btnClearThumb');
+    if (_btn) _btn.style.display = '';
+    _isDirty = true;
+    draw();
+    setStatus('Thumb carregado.', 'ok');
+  };
+  i.onerror = () => setStatus('Erro ao ler imagem do thumb.', 'err');
+  i.src = URL.createObjectURL(file);
+}
+
+// Listeners do thumb
+document.getElementById('thumbInput')?.addEventListener('change', e => {
+  if (e.target.files?.[0]) {
+    document.getElementById('thumbDropName').textContent = e.target.files[0].name;
+    handleThumbFile(e.target.files[0]);
+  }
+});
+document.getElementById('btnClearThumb')?.addEventListener('click', () => {
+  thumb.img = null;
+  thumb.isTransparent = false;
+  document.getElementById('btnClearThumb').style.display = 'none';
+  document.getElementById('thumbDropName').textContent = '';
+  document.getElementById('thumbInput').value = '';
+  draw();
+  setStatus('Thumb removido — voltou pro original do Figma.', 'ok');
+});
+// Drag-and-drop pra thumb (mesma UX da seção foto)
+(function _setupThumbDrop() {
+  const dz = document.getElementById('thumbDropZone');
+  if (!dz) return;
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('over');
+    const f = e.dataTransfer.files?.[0];
+    if (f) {
+      document.getElementById('thumbDropName').textContent = f.name;
+      handleThumbFile(f);
+    }
+  });
+})();
+
+// ══════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════
 // REMOÇÃO DE FUNDO (@imgly/background-removal via CDN, WebAssembly)
 // ══════════════════════════════════════════════════════════
@@ -3255,19 +3808,6 @@ function _mobFlip() {
   _syncFlipBtn(foto.flipH);
   if (foto.img && activeLayoutMeta) draw();
 }
-// Sincroniza estado visual dos botões flip (desktop + mob-zoom-bar)
-function _syncFlipBtn(state) {
-  document.getElementById('btnFlip').classList.toggle('active', state);
-  const mob = document.getElementById('mobBtnFlip');
-  if (mob) mob.classList.toggle('active', state);
-}
-// Atalhos para os botões da mob-zoom-bar
-function _mobToggleDrag() { setDragMode(!dragMode); }
-function _mobFlip() {
-  foto.flipH = !foto.flipH;
-  _syncFlipBtn(foto.flipH);
-  if (foto.img && activeLayoutMeta) draw();
-}
 document.getElementById('btnAlignEyes').addEventListener('click', () => detectarAlinharOlhos());
 document.getElementById('btnDrag').addEventListener('click', () => setDragMode(!dragMode));
 
@@ -3314,15 +3854,35 @@ document.getElementById('btnClearFoto').addEventListener('click', () => {
   setStatus('Foto removida.', 'ok');
 });
 
+// Helper: limpa trailing whitespace/newlines de uma string
+// Usado APENAS em paste events — preserva Enter manual do operador, mas elimina
+// \n invisíveis que vêm colados de outras fontes (Word, Docs, web).
+function _cleanTrailingOnPaste(el) {
+  // setTimeout(0) garante que executa DEPOIS do paste ser aplicado ao value
+  setTimeout(() => {
+    const v = el.value;
+    const cleaned = v.replace(/[\s\n]+$/, '');
+    if (cleaned !== v) {
+      el.value = cleaned;
+      _wrapCache.clear();
+      _rangesStyledCache.clear();
+      if (activeLayoutMeta) drawDebounced();
+    }
+  }, 0);
+}
+
 ['tag','titulo','sub','cta'].forEach(id => {
   const el = document.getElementById(id);
-  if (el) el.addEventListener('input', () => {
+  if (!el) return;
+  el.addEventListener('input', () => {
     _wrapCache.clear(); // G1 — texto mudou → invalida cache de quebra de linha
     _isDirty = true;    // S1 — operador editou texto
     if (activeLayoutMeta) draw();
     // C8 — mostra/oculta barra de formatação conforme texto foi editado
     if (id === 'titulo' || id === 'sub') _fmtUpdateBar(id);
   });
+  // Paste listener: limpa trailing whitespace/newlines do conteúdo colado
+  el.addEventListener('paste', () => _cleanTrailingOnPaste(el));
 });
 
 // ── C2 — Histórico de conjuntos de texto ─────────────────
@@ -3813,6 +4373,10 @@ function buildLayerDefs(meta, frameNode) {
     id: '__foto__', name: 'Foto do usuário', type: 'VIRTUAL',
     figmaVisible: true, hidden: false, img: null, bb: null, isVirtual: true,
   };
+  const thumbDef = {
+    id: '__thumb__', name: 'Thumb do autor', type: 'VIRTUAL',
+    figmaVisible: true, hidden: false, img: null, bb: null, isVirtual: true,
+  };
   const textDef = {
     id: '__text__', name: 'Texto editável', type: 'VIRTUAL',
     figmaVisible: true, hidden: false, img: null, bb: null, isVirtual: true,
@@ -3841,16 +4405,34 @@ function buildLayerDefs(meta, frameNode) {
     defs.splice(fotoIdx, 0, fotoDef);
   }
 
+  // __thumb__: SUBSTITUI a camada Figma que contém maskThumb/field:thumb (mesma lógica do foto).
+  // IMPORTANTE: thumbIdx é do `children` (Figma original), mas defs já foi modificado pela inserção
+  // do __foto__ quando foto não era top-level (defs tem 1 elemento extra). Ajusta o índice.
+  const thumbNodeId = meta.thumbMaskNodeId || meta.fields.thumb?.nodeId;
+  let thumbIdx = thumbNodeId ? children.findIndex(c => _nodeContains(c, thumbNodeId)) : -1;
+  const thumbIsTopLevel = thumbIdx >= 0;
+  if (thumbIsTopLevel) {
+    // Ajuste: se foto NÃO era top-level, fotoDef foi INSERIDO em defs[fotoIdx], deslocando tudo a partir dali
+    if (!fotoIsTopLevel && thumbIdx >= fotoIdx) thumbIdx++;
+    const origThumbDef = defs[thumbIdx];
+    thumbDef.thumbNodeId = origThumbDef.id; // ID real do Figma — usado em loadLayerImages
+    thumbDef.bb = origThumbDef.bb;
+    defs.splice(thumbIdx, 1, thumbDef);
+    dbg(`__thumb__ substituiu top-level "${origThumbDef.name}" (${origThumbDef.id})`);
+  }
+  // Se thumb é nested (não top-level): NÃO insere __thumb__ — o thumb já é parte do PNG do container,
+  // que é desenhado normalmente. drawThumbMasked é chamado em drawEditableText nesse caso.
+
   // __text__: posiciona a camada de texto editável.
   // Se o container é blocoGlass ou blocoTX → INSERE acima (não substitui) para preservar
   // o render do bloco (glass dinâmico ou PNG do Figma).
   // Se é um container genérico → SUBSTITUI (padrão anterior).
-  // Coleta nodeIds de campos tx1, tx2... para incluir na busca do layer de texto
-  const _txNNodeIds = Object.entries(meta.fields)
-    .filter(([k]) => /^tx\d+$/.test(k))
+  // Coleta nodeIds das instâncias extras de texto (titulo2, texto2, tag2) para fallback de busca do layer
+  const _extraTextNodeIds = Object.entries(meta.fields)
+    .filter(([k]) => /^(titulo|texto|tag)\d+$/.test(k))
     .map(([, f]) => f.nodeId).filter(Boolean);
   const textNodeId = meta.fields.titulo?.nodeId || meta.fields.tag?.nodeId
-                  || meta.fields.texto?.nodeId  || _txNNodeIds[0]
+                  || meta.fields.texto?.nodeId  || _extraTextNodeIds[0]
                   || meta.blocoTX?.nodeId;
   let textIdx = textNodeId ? children.findIndex(c => _nodeContains(c, textNodeId)) : -1;
   // Ajusta índice levando em conta se fotoDef substituiu (não inseriu) ou inseriu
@@ -3890,11 +4472,12 @@ function buildLayerDefs(meta, frameNode) {
   // Remove quaisquer camadas top-level que são diretamente um field de texto renderizado via JS.
   // Isso evita que o PNG seja exportado E drawEditableText também desenhe — duplicação.
   // Exemplo: titulo + texto ambos top-level → textNodeId pega título, texto fica com PNG ativo.
-  const _allTextFieldIds = [
-    meta.fields.titulo?.nodeId,
-    meta.fields.texto?.nodeId,
-    ...Object.entries(meta.fields).filter(([k]) => /^tx\d+$/.test(k)).map(([, f]) => f.nodeId),
-  ].filter(Boolean);
+  // Todos os IDs de nó de campos de texto (primárias + extras) e thumb para evitar render duplicado.
+  // Thumb é desenhado via drawThumbMasked (com upload do operador), então não pode ser PNG normal.
+  const _allTextFieldIds = Object.entries(meta.fields)
+    .filter(([k]) => /^(titulo|texto|tag|ctatx|thumb)(\d*)$/.test(k))
+    .map(([, f]) => f.nodeId)
+    .filter(Boolean);
   for (let _i = defs.length - 1; _i >= 0; _i--) {
     if (defs[_i].isVirtual) continue;
     if (_allTextFieldIds.includes(defs[_i].id)) defs.splice(_i, 1);
@@ -3909,6 +4492,8 @@ async function loadLayerImages(meta, loadToken) {
   const _obsoleto = () => loadToken !== undefined && _layoutLoadToken !== loadToken;
   // Camada virtual __foto__ pode precisar exportar a imagem placeholder do Figma
   const fotoDef = (meta.layerDefs || []).find(d => d.id === '__foto__' && d.fotoNodeId);
+  // Camada virtual __thumb__ — mesma lógica: exporta PNG do container original como fallback
+  const thumbDef = (meta.layerDefs || []).find(d => d.id === '__thumb__' && d.thumbNodeId);
   // blocoGlass e blocoTX são renderizados dinamicamente — não precisa exportar PNG
   const glassNodeIdSkip   = meta.glassBox?.nodeId;
   const blocoTXNodeIdSkip = meta.blocoTX?.nodeId;
@@ -3929,9 +4514,21 @@ async function loadLayerImages(meta, loadToken) {
 
   const idsArr = defs.map(d => d.id);
   if (fotoDef && !idsArr.includes(fotoDef.fotoNodeId)) idsArr.push(fotoDef.fotoNodeId);
+  if (thumbDef && !idsArr.includes(thumbDef.thumbNodeId)) idsArr.push(thumbDef.thumbNodeId);
   // Exporta a shape da máscara separadamente para destination-in (pode ser nó diferente do placeholder)
   const maskNodeId = meta.fotoMaskNodeId;
   if (maskNodeId && !idsArr.includes(maskNodeId)) idsArr.push(maskNodeId);
+  // Thumb: máscara + placeholder (imagem original do Figma usada como fallback)
+  const thumbMaskNodeId = meta.thumbMaskNodeId;
+  if (thumbMaskNodeId && !idsArr.includes(thumbMaskNodeId)) idsArr.push(thumbMaskNodeId);
+  const thumbPlaceholderId = meta.fields.thumb?.nodeId;
+  if (thumbPlaceholderId && !idsArr.includes(thumbPlaceholderId)) idsArr.push(thumbPlaceholderId);
+  // Decorativos extraídos de dentro de blocoTX/blocoGlass — exportar como PNGs individuais
+  for (const _deco of (meta.decorativeLayers || [])) {
+    if (_deco.nodeId && !idsArr.includes(_deco.nodeId)) idsArr.push(_deco.nodeId);
+  }
+  // Diagnóstico: lista IDs sendo enviados pra API Figma
+  dbg(`loadLayerImages: ${idsArr.length} IDs → ${idsArr.slice(0, 15).join(',')}${idsArr.length > 15 ? '…' : ''}`);
   // field:cta é renderizado via JS (fill extraído do Figma) — não precisa exportar PNG
   const ids = idsArr.join(',');
   let loaded = 0;
@@ -3942,9 +4539,20 @@ async function loadLayerImages(meta, loadToken) {
       imgMap = _layerUrlCache.get(meta.id);
       dbg('layerUrlCache HIT: ' + meta.id);
     } else {
-      const data = await figmaGet(`/images/${FIGMA_FILE_KEY}?ids=${encodeURIComponent(ids)}&format=png&scale=1`);
-      if (_obsoleto()) return; // N1 — outro layout selecionado enquanto buscávamos URLs
-      imgMap = data.images || {};
+      // Chunking: divide em batches de 5 IDs (evita timeout do Figma com layouts pesados)
+      const CHUNK_SIZE = 5;
+      imgMap = {};
+      for (let _i = 0; _i < idsArr.length; _i += CHUNK_SIZE) {
+        const _chunk = idsArr.slice(_i, _i + CHUNK_SIZE);
+        try {
+          const _data = await figmaGet(`/images/${FIGMA_FILE_KEY}?ids=${encodeURIComponent(_chunk.join(','))}&format=png&scale=1`);
+          if (_obsoleto()) return; // N1 — outro layout selecionado durante chunking
+          Object.assign(imgMap, _data.images || {});
+          dbg(`layerImages chunk ${Math.floor(_i/CHUNK_SIZE)+1}/${Math.ceil(idsArr.length/CHUNK_SIZE)} ok (${_chunk.length} ids)`);
+        } catch (e) {
+          dbg(`layerImages chunk ${Math.floor(_i/CHUNK_SIZE)+1} FALHOU: ${e.message}`);
+        }
+      }
       _layerUrlCache.set(meta.id, imgMap);
     }
     if (_obsoleto()) return; // N1 — checagem extra antes de iniciar downloads
@@ -3953,16 +4561,24 @@ async function loadLayerImages(meta, loadToken) {
     await Promise.all(Object.entries(imgMap).map(async ([id, url]) => {
       // Verifica se é a imagem placeholder da camada foto virtual
       const isFotoPlaceholder = fotoDef && id === fotoDef.fotoNodeId;
+      // Verifica se é o PNG do container do __thumb__ (fallback quando sem upload)
+      const isThumbContainer = thumbDef && id === thumbDef.thumbNodeId;
       // Verifica se é a shape da máscara de recorte
       const isMask = !!maskNodeId && id === maskNodeId && !isFotoPlaceholder;
-      const def = isFotoPlaceholder ? fotoDef : defs.find(d => d.id === id);
+      // Thumb: máscara + placeholder (imagem original do Figma)
+      const isThumbMask        = !!thumbMaskNodeId && id === thumbMaskNodeId;
+      const isThumbPlaceholder = !!thumbPlaceholderId && id === thumbPlaceholderId;
+      const def = isFotoPlaceholder ? fotoDef : (isThumbContainer ? thumbDef : defs.find(d => d.id === id));
+      // Decorativo extraído de dentro de blocoTX/blocoGlass
+      const decoEntry = (meta.decorativeLayers || []).find(d => d.nodeId === id);
       if (!url) {
-        // Figma retornou null para este node — marca como falhou para não bloquear layersReady
         if (def) def.loadFailed = true;
+        if (decoEntry) decoEntry.loadFailed = true;
         if (isMask) dbg(`WARN: maskFoto url=null (node ${id}) — fallback retangular será usado`);
+        if (isThumbMask) dbg(`WARN: maskThumb url=null (node ${id}) — fallback retangular será usado`);
         loaded++; return;
       }
-      if (!def && !isMask) { loaded++; return; }
+      if (!def && !isMask && !decoEntry && !isThumbMask && !isThumbPlaceholder) { loaded++; return; }
       try {
         // P1 — loadImg usa _imgCache: na segunda visita ao layout as imagens já estão em memória
         const img = await loadImg(url);
@@ -3971,15 +4587,27 @@ async function loadLayerImages(meta, loadToken) {
           def.figmaImg = img; // fallback quando sem foto do usuário
           // Se o nó placeholder é o mesmo da máscara, reutiliza o PNG
           if (id === maskNodeId) meta.fotoMaskImg = img;
+        } else if (isThumbContainer) {
+          def.figmaImg = img; // PNG do container __thumb__ (mesma lógica do __foto__)
         } else if (isMask) {
           meta.fotoMaskImg = img; // shape de clip para destination-in
           dbg('fotoMaskImg carregada: ' + id);
         } else if (def) {
           def.img = img;
         }
+        if (isThumbMask) {
+          meta.thumbMaskImg = img;
+          dbg('thumbMaskImg carregada: ' + id);
+        }
+        if (isThumbPlaceholder && meta.fields.thumb) {
+          meta.fields.thumb.figmaImg = img; // fallback quando sem upload do operador
+          dbg('thumb placeholder carregado: ' + id);
+        }
+        if (decoEntry) decoEntry.img = img; // decorativo: mesma imagem pode também estar em def
       } catch(e) {
         dbg('erro ao carregar camada: ' + id + ' — ' + e.message);
-        if (def) def.loadFailed = true; // marca como falhou: não bloqueia o layersReady
+        if (def) def.loadFailed = true;
+        if (decoEntry) decoEntry.loadFailed = true;
       }
       loaded++;
       // Atualiza a barra proporcionalmente dentro do bucket "layers" (30%)
@@ -4147,36 +4775,37 @@ function computeDynLayout(c, meta) {
   if (!gl) return null;
   dbg(`computeDynLayout: início — constraintV=${gl.constraintV} gl=(${gl.x},${gl.y},${gl.w}x${gl.h})`);
 
-  const fTag = meta.fields.tag;
-  const fT   = meta.fields.titulo;
-  const fS   = meta.fields.texto;
-  const fCta = meta.fields.cta;
-
+  const fT = meta.fields.titulo;
   if (!fT) { dbg('computeDynLayout: sem field:titulo → skip'); return null; }
-  if (fT.y < gl.y - 5 || fT.y > gl.y + gl.h) {
-    dbg(`computeDynLayout: titulo fora do glass (fT.y=${fT.y} gl.y=${gl.y}..${gl.y+gl.h}) → skip`);
-    return null;
-  }
 
-  // Direção de crescimento: BOTTOM=cresce pra cima (âncora no fundo), TOP=cresce pra baixo.
-  // Usa o valor do Figma quando é BOTTOM; caso contrário usa heurística por posição no frame.
-  const effectiveConstraintV = gl.constraintV === 'BOTTOM'
-    ? 'BOTTOM'
+  // Direção de crescimento:
+  //  BOTTOM = âncora no fundo (cresce pra cima)
+  //  TOP    = âncora no topo (cresce pra baixo)
+  //  CENTER = âncora no centro (cresce simétrico pra cima E pra baixo)
+  // Respeita valor explícito do Figma; caso contrário usa heurística por posição no frame.
+  const effectiveConstraintV = (gl.constraintV === 'BOTTOM' || gl.constraintV === 'CENTER')
+    ? gl.constraintV
     : (gl.y + gl.h / 2 > meta.H / 2 ? 'BOTTOM' : 'TOP');
   dbg(`computeDynLayout: effective=${effectiveConstraintV} (Figma=${gl.constraintV}) meta.H=${meta.H}`);
 
-  // --- Lê valores dos inputs (respeitando visibilidade de camadas) ---
-  const titulo = (_layerVisible.titulo ? document.getElementById('titulo')?.value.trim() : '') || '';
-  const texto  = (_layerVisible.sub    ? document.getElementById('sub')?.value.trim()    : '') || '';
-  const tag    = (_layerVisible.tag    ? document.getElementById('tag')?.value.trim()    : '') || '';
-  const cta    = (_layerVisible.cta    ? document.getElementById('cta')?.value.trim()    : '') || '';
+  // Helper: lê valor do input associado a uma field key, respeitando _layerVisible
+  // trimStart preserva \n no final (Enter do operador cria espaço visual entre campos)
+  function _valueOf(key) {
+    if (!_layerVisible[key]) return '';
+    const id = _getFieldInputId(key);
+    const type = _fieldType(key);
+    // Tag e CTA: trim total (single-line); titulo/texto: preserva trailing \n
+    return (type === 'tag' || type === 'cta')
+      ? (document.getElementById(id)?.value || '').trim()
+      : (document.getElementById(id)?.value || '').trimStart();
+  }
 
   // --- Função que conta linhas de um campo de texto ---
   // Replica exatamente a lógica de drawEditableText: styled words quando há segmentos,
   // wrapWords simples caso contrário. Isso garante contagem idêntica ao render real.
-  function countLines(text, field) {
+  function countLines(text, field, overrideFS) {
     if (!field || !text) return 0;
-    const fs  = field.textStyle?.fontSize || 16;
+    const fs  = overrideFS || field.textStyle?.fontSize || 16;
     const fw  = field.textStyle?.fontWeight || 400;
     const fst = field.textStyle?.fontStyle || 'normal';
     const ff  = field.textStyle?.fontFamily ? `'${field.textStyle.fontFamily}',sans-serif` : "'Lato',sans-serif";
@@ -4189,7 +4818,7 @@ function computeDynLayout(c, meta) {
     // Replica o split por \n do drawEditableText: cada parágrafo é wrappado separadamente
     // Remove parágrafos vazios no final — Figma frequentemente adiciona \n no final do texto
     const paragrafos = text.split('\n');
-    while (paragrafos.length > 1 && paragrafos[paragrafos.length - 1].trim() === '') paragrafos.pop();
+    // Trailing \n mantido: permite que Enter no campo crie espaço visual (útil pra descolar título do texto)
     let total = 0;
     let _swOff = 0; // offset em segs: avança parágrafo a parágrafo (sem redistribuir do zero)
     for (const para of paragrafos) {
@@ -4211,94 +4840,165 @@ function computeDynLayout(c, meta) {
     return result;
   }
 
-  const tLH = fT.textStyle?.lineHeightPx || Math.round((fT.textStyle?.fontSize || 60) * 1.2);
-  const sLH = fS?.textStyle?.lineHeightPx || Math.round((fS?.textStyle?.fontSize || 30) * 1.4);
+  // --- Coleta TODOS os campos de texto do layout que participam de posicionamento ---
+  // Inclui: titulo, titulo2, texto, texto2, tag, tag2, cta, cta2, … (cta usa o frame; ctatx é só pra texto)
+  // Exclui: ctatx* (texto dentro do frame cta), olhos, foto, rodape
+  const _layoutKeys = Object.keys(meta.fields).filter(k => _isTextLayoutKey(k));
 
-  const tLines = countLines(titulo, fT);
-  const sLines = fS ? countLines(texto, fS) : 0;
+  // Regra de "dentro do bloco": topo dentro de gl.y-20 até gl.y+gl.h+20 (tolerância p/ bordas)
+  // Fora do bloco → posição fixa do Figma (não participa de stacking). Corrige bug reportado.
+  const _isInsideBlock = (f) => f && f.y >= gl.y - 20 && f.y < gl.y + gl.h + 20;
 
-  const tagH  = (tag && fTag) ? fTag.h : 0;
-  const tH    = tLines > 0 ? tLines * tLH : 0;
-  const sH    = sLines > 0 ? sLines * sLH : 0;
-  const ctaH  = (cta && fCta) ? (meta._ctaDynH ?? fCta.h) : 0; // Fix 3: usa altura dinâmica se o botão cresceu
+  // Entradas do stacking: { key, f } ordenadas por Y
+  const fieldsInGlass = _layoutKeys
+    .map(key => ({ key, f: meta.fields[key] }))
+    .filter(({ f }) => _isInsideBlock(f))
+    .sort((a, b) => a.f.y - b.f.y);
 
-  // --- Deriva padding e gap das posições originais do Figma ---
-  // firstField = elemento mais alto dentro do glass
-  // Inclui campos cujo topo está dentro do glass (tolerância de 20px para bordas)
-  const fieldsInGlass = [fTag, fT, fS, fCta]
-    .filter(f => f && f.y >= gl.y - 20 && f.y < gl.y + gl.h + 20);
-  dbg(`computeDynLayout: fieldsInGlass=${fieldsInGlass.map(f=>f===fTag?'tag':f===fT?'titulo':f===fS?'texto':'cta').join(',')}`);
+  dbg(`computeDynLayout: fieldsInGlass=${fieldsInGlass.map(e => e.key).join(',')}`);
   if (fieldsInGlass.length === 0) {
-    dbg('computeDynLayout: nenhum campo dentro do glass → skip');
+    dbg('computeDynLayout: nenhum campo dentro do bloco → skip');
     return null;
   }
 
-  fieldsInGlass.sort((a, b) => a.y - b.y);
-  const firstF = fieldsInGlass[0];
-  const lastF  = fieldsInGlass[fieldsInGlass.length - 1];
+  // Titulo precisa estar dentro do bloco pro cascade funcionar
+  if (!fieldsInGlass.some(e => e.key === 'titulo')) {
+    dbg('computeDynLayout: titulo fora do bloco → skip');
+    return null;
+  }
+
+  // Altura dinâmica por tipo de campo (respeitando visibilidade + valor atual)
+  function _heightOfEntry({ key, f }) {
+    const type = _fieldType(key);
+    const val  = _valueOf(key);
+    if (!val) return 0;
+    if (type === 'tag')    return f.h;
+    if (type === 'cta')    return f.h; // CTA tem altura fixa (cresce só em largura)
+    // titulo / texto: linhas × lineHeight (fontSize e lineHeight podem ter override do operador)
+    const baseFS = f.textStyle?.fontSize || 60;
+    const effFS  = _getEffectiveFontSize(key, baseFS);
+    const baseLH = f.textStyle?.lineHeightPx
+      ? Math.round(f.textStyle.lineHeightPx * (effFS / baseFS))
+      : Math.round(effFS * 1.2);
+    const lh = _getEffectiveLineHeight(key, baseLH);
+    const lines = countLines(val, f, effFS);
+    return lines * lh;
+  }
+
+  // --- Deriva padding e gap das posições originais do Figma ---
+  const firstF = fieldsInGlass[0].f;
+  const lastF  = fieldsInGlass[fieldsInGlass.length - 1].f;
   const padTop    = firstF.y - gl.y;
   const padBottom = (gl.y + gl.h) - (lastF.y + lastF.h);
 
-  // Gap individual por par de campos consecutivos (tag→titulo pode diferir de titulo→texto)
+  // Gap individual por par de campos consecutivos (por Y)
   const _gapsBetween = fieldsInGlass.length >= 2
-    ? fieldsInGlass.slice(1).map((f, i) =>
-        Math.max(0, f.y - (fieldsInGlass[i].y + fieldsInGlass[i].h)))
+    ? fieldsInGlass.slice(1).map((entry, i) =>
+        Math.max(0, entry.f.y - (fieldsInGlass[i].f.y + fieldsInGlass[i].f.h)))
     : [];
 
   // --- Empilha sempre (bidirecional: cresce E encolhe conforme o texto real) ---
-  // O container se ajusta ao conteúdo: menor texto → container menor; maior → maior.
   const anchorBottom = gl.y + gl.h;
   const positions = {};
 
-  // Helpers: mapeia nó do campo para sua chave e altura dinâmica
-  const _fieldKey = f => f === fTag ? 'tag' : f === fT ? 'titulo' : f === fS ? 'texto' : 'cta';
-  const _fieldH   = f => f === fTag ? tagH  : f === fT ? tH       : f === fS ? sH      : ctaH;
+  // Bug #58 fix: calcula altura de cada campo UMA vez só. Reutiliza no stacking.
+  const _heights = {};
+  for (const entry of fieldsInGlass) {
+    _heights[entry.key] = _heightOfEntry(entry);
+  }
+  dbg(`computeDynLayout alturas: ${fieldsInGlass.map(e => `${e.key}=${_heights[e.key]}`).join(' ')}`);
 
-  if (effectiveConstraintV === 'BOTTOM') {
-    // Empilha bottom-up na ORDEM DO FIGMA (inverso de fieldsInGlass que está top-down)
+  if (effectiveConstraintV === 'CENTER') {
+    // Empilha em torno do centro do bloco — cresce simetricamente pra cima E pra baixo.
+    // Calcula altura total do conteúdo (incluindo gaps), centraliza no eixo vertical do bloco original.
+    let totalH = 0;
+    let activeCount = 0;
+    for (let i = 0; i < fieldsInGlass.length; i++) {
+      const h = _heights[fieldsInGlass[i].key];
+      if (h > 0) {
+        totalH += h;
+        activeCount++;
+        // Adiciona gap se há próximo campo ativo
+        const hasNextActive = fieldsInGlass.slice(i + 1).some(p => _heights[p.key] > 0);
+        if (hasNextActive) totalH += (_gapsBetween[i] ?? 0);
+      }
+    }
+    const blockCenterY = gl.y + gl.h / 2;
+    let cursor = blockCenterY - totalH / 2;
+    for (let i = 0; i < fieldsInGlass.length; i++) {
+      const entry = fieldsInGlass[i];
+      const h = _heights[entry.key];
+      if (h > 0) {
+        positions[entry.key] = cursor;
+        cursor += h;
+        const hasNextActive = fieldsInGlass.slice(i + 1).some(p => _heights[p.key] > 0);
+        if (hasNextActive) cursor += (_gapsBetween[i] ?? 0);
+      }
+    }
+    const newGlassY = blockCenterY - totalH / 2 - padTop;
+    const newGlassH = totalH + padTop + padBottom;
+
+    const titleEntry = fieldsInGlass.find(e => e.key === 'titulo');
+    const tLines = titleEntry ? countLines(_valueOf('titulo'), titleEntry.f) : 1;
+
+    dbg(`computeDynLayout CENTER: blockCenterY=${blockCenterY} totalH=${totalH} glassY=${newGlassY} glassH=${newGlassH} pos=${JSON.stringify(positions)}`);
+    return { glassY: newGlassY, glassH: newGlassH, positions, titleLines: tLines };
+
+  } else if (effectiveConstraintV === 'BOTTOM') {
+    // Empilha bottom-up (fim para o início)
     let cursor = anchorBottom - padBottom;
     for (let i = fieldsInGlass.length - 1; i >= 0; i--) {
-      const f = fieldsInGlass[i];
-      const h = _fieldH(f);
+      const entry = fieldsInGlass[i];
+      const h = _heights[entry.key];
       if (h > 0) {
         cursor -= h;
-        positions[_fieldKey(f)] = cursor;
-        // Gap individual entre este campo e o anterior (índice i-1 → i no array de gaps)
-        const hasPrevActive = fieldsInGlass.slice(0, i).some(pf => _fieldH(pf) > 0);
+        positions[entry.key] = cursor;
+        const hasPrevActive = fieldsInGlass.slice(0, i).some(p => _heights[p.key] > 0);
         if (hasPrevActive) cursor -= (_gapsBetween[i - 1] ?? 0);
       }
     }
 
-    // Topo do glass = elemento mais alto posicionado - padding superior original
     let topOfContent = anchorBottom;
-    for (const f of fieldsInGlass) {
-      const k = _fieldKey(f);
-      if (positions[k] != null) { topOfContent = positions[k]; break; }
+    for (const entry of fieldsInGlass) {
+      if (positions[entry.key] != null) { topOfContent = positions[entry.key]; break; }
     }
-    const newGlassY = topOfContent - padTop;
-    const newGlassH = anchorBottom - newGlassY; // bidirecional: sem Math.max com gl.h
+    let newGlassY = topOfContent - padTop;
+    let newGlassH = anchorBottom - newGlassY;
 
-    dbg(`computeDynLayout BOTTOM: glassY=${newGlassY} glassH=${newGlassH} gaps=${JSON.stringify(_gapsBetween)} padBottom=${padBottom} padTop=${padTop} pos=${JSON.stringify(positions)}`);
+    // Overflow acima do canvas: clampa APENAS o visual do glass (não empurra os campos).
+    // BOTTOM anchor é inviolável — tag e texto NÃO se movem quando o título cresce.
+    if (newGlassY < 0) {
+      dbg(`computeDynLayout BOTTOM: título excede topo em ${-newGlassY}px — será cortado (bottom anchor preservado)`);
+      newGlassH = anchorBottom;
+      newGlassY = 0;
+    }
+
+    // titleLines: mantém retrocompat com callers (usa instância principal)
+    const titleEntry = fieldsInGlass.find(e => e.key === 'titulo');
+    const tLines = titleEntry ? countLines(_valueOf('titulo'), titleEntry.f) : 1;
+
+    dbg(`computeDynLayout BOTTOM: glassY=${newGlassY} glassH=${newGlassH} gaps=${JSON.stringify(_gapsBetween)} pos=${JSON.stringify(positions)}`);
     return { glassY: newGlassY, glassH: newGlassH, positions, titleLines: tLines };
 
   } else {
-    // Empilha top-down na ORDEM DO FIGMA (fieldsInGlass já ordenado por Y)
+    // Empilha top-down (início para o fim)
     let cursor = gl.y + padTop;
     for (let i = 0; i < fieldsInGlass.length; i++) {
-      const f = fieldsInGlass[i];
-      const h = _fieldH(f);
+      const entry = fieldsInGlass[i];
+      const h = _heights[entry.key];
       if (h > 0) {
-        positions[_fieldKey(f)] = cursor;
+        positions[entry.key] = cursor;
         cursor += h;
-        // Gap individual entre este campo e o próximo (índice i no array de gaps)
-        const hasNextActive = fieldsInGlass.slice(i + 1).some(nf => _fieldH(nf) > 0);
+        const hasNextActive = fieldsInGlass.slice(i + 1).some(p => _heights[p.key] > 0);
         if (hasNextActive) cursor += (_gapsBetween[i] ?? 0);
       }
     }
+    const newGlassH = cursor + padBottom - gl.y;
 
-    const newGlassH = cursor + padBottom - gl.y; // bidirecional: sem Math.max com gl.h
+    const titleEntry = fieldsInGlass.find(e => e.key === 'titulo');
+    const tLines = titleEntry ? countLines(_valueOf('titulo'), titleEntry.f) : 1;
 
-    dbg(`computeDynLayout TOP: glassY=${gl.y} glassH=${newGlassH} gaps=${JSON.stringify(_gapsBetween)} padTop=${padTop} pos=${JSON.stringify(positions)}`);
+    dbg(`computeDynLayout TOP: glassY=${gl.y} glassH=${newGlassH} gaps=${JSON.stringify(_gapsBetween)} pos=${JSON.stringify(positions)}`);
     return { glassY: gl.y, glassH: newGlassH, positions, titleLines: tLines };
   }
 }
@@ -4372,6 +5072,13 @@ function drawWithLayerStack(c, meta) {
   // Recalcula layout dinâmico (funciona para blocoGlass e blocoTX)
   meta.dynLayout = computeDynLayout(c, meta);
 
+  // Diagnóstico: imprime ordem completa dos layerDefs (z-order Figma: bottom→top)
+  const _orderInfo = (meta.layerDefs || []).map((d, i) => {
+    const tag = d.isVirtual ? 'VIRT' : (d.id === glassNodeId ? 'GLASS' : (d.id === blocoTXNodeId ? 'BLOCO' : 'IMG'));
+    return `[${i}]${tag}:${d.name || d.id}`;
+  });
+  dbg(`drawOrder layerDefs: ${_orderInfo.join(' → ')}`);
+
   c.fillStyle = meta.bgColor || '#0c0a08';
   c.fillRect(0, 0, W, H);
 
@@ -4400,6 +5107,18 @@ function drawWithLayerStack(c, meta) {
         def.bb.w === _os.w && def.bb.h === _os.h
       );
       if (_hasEquivDef) { dbg(`skip orphan "${_ok}" nodeId=${_os.nodeId} — coberto por layerDef`); continue; }
+      // Pula se o orphan está geometricamente DENTRO de um layerDef que será desenhado como PNG
+      // (filhos de asset/X group já fazem parte do PNG do pai — desenhar de novo = duplicação)
+      const _TOL = 4;
+      const _coveredByParent = (meta.layerDefs || []).some(def => {
+        if (def.isVirtual || !def.bb || !def.img) return false;
+        // Não é o próprio layerDef (já filtrado por nodeId), mas é um pai geométrico (englobar bbox)
+        if (def.id === _os.nodeId) return false;
+        return _os.x >= def.bb.x - _TOL && _os.y >= def.bb.y - _TOL
+            && (_os.x + _os.w) <= (def.bb.x + def.bb.w + _TOL)
+            && (_os.y + _os.h) <= (def.bb.y + def.bb.h + _TOL);
+      });
+      if (_coveredByParent) { dbg(`skip orphan "${_ok}" nodeId=${_os.nodeId} — dentro de layerDef pai (PNG já contém)`); continue; }
       // Pula slots dentro do blocoTX/blocoGlass (attachedAssets, nós pai filtrados, tag-icon)
       if (_blkOrig) {
         const _inBlk = _os.x >= _blkOrig.x - 4 && _os.y >= _blkOrig.y - 4
@@ -4411,6 +5130,9 @@ function drawWithLayerStack(c, meta) {
       if (_oloaded?.img) _orphans.push({ key: _ok, slot: _os, img: _oloaded.img });
     }
   }
+  // Rastreia orphans já desenhados (renderizados in-place no z-order do asset/X pai)
+  // Os que sobrarem são desenhados como fallback no __text__
+  const _orphansDrawn = new Set();
 
   for (const layerId of (meta.layerOrder || [])) {
     const def = (meta.layerDefs || []).find(d => d.id === layerId);
@@ -4422,14 +5144,22 @@ function drawWithLayerStack(c, meta) {
       } else if (def.figmaImg && def.bb) {
         c.drawImage(def.figmaImg, def.bb.x, def.bb.y, def.bb.w, def.bb.h);
       }
+    } else if (def.id === '__thumb__') {
+      // Thumb top-level: drawThumbMasked se houver upload OU se houver placeholder.
+      // Sem upload e sem placeholder, desenha o PNG do container original como fallback.
+      if (thumb.img || meta.fields.thumb?.figmaImg || meta.thumbMaskImg) {
+        drawThumbMasked(c, W, H, meta, 0);
+      } else if (def.figmaImg && def.bb) {
+        c.drawImage(def.figmaImg, def.bb.x, def.bb.y, def.bb.w, def.bb.h);
+      }
     } else if (def.id === '__text__') {
-      // Orphan assets decorativos desenhados ANTES do texto para ficarem no fundo correto.
-      // Usa dimensões naturais da imagem ÷ 2 (exportada em scale=2) — não o absoluteBoundingBox.
-      // Nós TEXT têm glifos que extrapolam o absoluteBoundingBox; forçar w×h do BB comprime a imagem.
+      // Orphans REMANESCENTES (sem layerDef-pai equivalente): desenha ANTES do texto, como fallback
       for (const _orp of _orphans) {
+        if (_orphansDrawn.has(_orp.slot.nodeId)) continue;
+        _orphansDrawn.add(_orp.slot.nodeId);
         const _dw = _orp.img.naturalWidth  / 2;
         const _dh = _orp.img.naturalHeight / 2;
-        dbg(`draw orphan asset "${_orp.key}" nodeId=${_orp.slot.nodeId} @ (${_orp.slot.x},${_orp.slot.y}) natural=${_dw}×${_dh} bb=${_orp.slot.w}×${_orp.slot.h}`);
+        dbg(`draw orphan FALLBACK "${_orp.key}" nodeId=${_orp.slot.nodeId} @ (${_orp.slot.x},${_orp.slot.y}) natural=${_dw}×${_dh}`);
         c.drawImage(_orp.img, _orp.slot.x, _orp.slot.y, _dw, _dh);
       }
       drawEditableText(c, W, H, meta);
@@ -4453,11 +5183,29 @@ function drawWithLayerStack(c, meta) {
       // um top-level e um dentro do blocoTX — ambos representam o mesmo asset visual).
       const _layerAssetKey = def.name?.toLowerCase().startsWith('asset/')
         ? def.name.slice(6).toLowerCase().trim() : null;
+      // Skip asset/thumb quando o layout tem field:thumb (nova convenção)
+      if (_layerAssetKey === 'thumb' && meta.fields.thumb) {
+        dbg(`skip layer "${def.name}" (substituído por drawThumbMasked)`); continue;
+      }
       const _isAttached = meta.attachedAssets?.some(a =>
         a.slot.nodeId === def.id || (_layerAssetKey && a.key === _layerAssetKey)
       );
       if (_isAttached) {
-        dbg(`skip layer "${def.name}" (attachedAsset — desenhado com deltaY)`); continue;
+        dbg(`skip layer "${def.name}" (attachedAsset — desenhado com deltaY)`);
+        // BUG FIX: o asset foi pulado, mas seus filhos órfãos (asset/X subgrupos) precisam aparecer
+        // AQUI no z-order, não lá no __text__ (onde apareceriam NA FRENTE do logo/conteúdo posterior)
+        if (_layerAssetKey) {
+          for (const _orp of _orphans) {
+            if (_orp.key !== _layerAssetKey) continue;
+            if (_orphansDrawn.has(_orp.slot.nodeId)) continue;
+            _orphansDrawn.add(_orp.slot.nodeId);
+            const _dw = _orp.img.naturalWidth  / 2;
+            const _dh = _orp.img.naturalHeight / 2;
+            dbg(`draw orphan IN-PLACE "${_orp.key}" nodeId=${_orp.slot.nodeId} @ (${_orp.slot.x},${_orp.slot.y}) [pos do asset/${_layerAssetKey}]`);
+            c.drawImage(_orp.img, _orp.slot.x, _orp.slot.y, _dw, _dh);
+          }
+        }
+        continue;
       }
       dbg(`draw layer "${def.name}" @(${def.bb.x},${def.bb.y}) ${def.bb.w}×${def.bb.h}`);
       c.drawImage(def.img, def.bb.x, def.bb.y, def.bb.w, def.bb.h);
@@ -4467,6 +5215,50 @@ function drawWithLayerStack(c, meta) {
 
 // Desenha foto do usuário clipada à máscara do Figma (destination-in).
 // Reutilizada por drawLayoutTemplate e drawWithLayerStack.
+// Desenha o thumb (avatar circular do autor) aplicando a máscara do Figma (destination-in).
+// Fonte: thumb.img (upload do operador) ou figmaImg (placeholder original) como fallback.
+// Sem ajustes manuais — apenas aspect-fill centralizado no slot.
+// offsetY: deslocamento vertical pra acompanhar reflow do bloco (quando thumb está dentro de blocoTX)
+function drawThumbMasked(c, W, H, meta, offsetY) {
+  offsetY = offsetY || 0;
+  const ft = meta.fields.thumb;
+  // Busca caixa: maskThumb → field:thumb
+  const baseMbox = meta.thumbMaskBox || (ft ? { x: ft.x, y: ft.y, w: ft.w, h: ft.h } : null);
+  if (!baseMbox) return;
+  const src = thumb.img || ft?.figmaImg;
+  if (!src) return;
+  const mbox = { x: baseMbox.x, y: baseMbox.y + offsetY, w: baseMbox.w, h: baseMbox.h };
+
+  // Aspect-fill: redimensiona pra cobrir todo o slot, centralizado
+  const srcW = src.naturalWidth || src.width;
+  const srcH = src.naturalHeight || src.height;
+  const scale = Math.max(mbox.w / srcW, mbox.h / srcH);
+  const dw = srcW * scale;
+  const dh = srcH * scale;
+  const dx = mbox.x + (mbox.w - dw) / 2;
+  const dy = mbox.y + (mbox.h - dh) / 2;
+
+  // Canvas offscreen pro destination-in (preserva o resto do canvas principal)
+  const pc = document.createElement('canvas');
+  pc.width = W; pc.height = H;
+  const pctx = pc.getContext('2d');
+  pctx.imageSmoothingEnabled = true;
+  pctx.imageSmoothingQuality = 'high';
+  pctx.drawImage(src, dx, dy, dw, dh);
+  // Máscara: maskThumb PNG (igual fotoMaskImg para FOTO)
+  const _maskImg = meta.thumbMaskImg;
+  if (_maskImg) {
+    pctx.globalCompositeOperation = 'destination-in';
+    pctx.drawImage(_maskImg, mbox.x, mbox.y, mbox.w, mbox.h);
+  } else if (meta.thumbMaskNodeId) {
+    // Fallback retangular (igual maskFoto) — quando Figma não retornou PNG da máscara
+    pctx.globalCompositeOperation = 'destination-in';
+    pctx.fillStyle = 'rgba(255,255,255,1)';
+    pctx.fillRect(mbox.x, mbox.y, mbox.w, mbox.h);
+  }
+  c.drawImage(pc, 0, 0);
+}
+
 function drawFotoMasked(c, W, H, meta) {
   if (!foto.img) return;
   const f    = meta.fields.foto;
@@ -4569,9 +5361,9 @@ function effectiveTextWidth(fField, textX, meta) {
 
 // Desenha texto editável na posição exata dos field:* extraídos do Figma
 function drawEditableText(c, W, H, meta) {
-  const titulo = _layerVisible.titulo ? document.getElementById('titulo').value.trim() : '';
-  const sub    = _layerVisible.sub    ? document.getElementById('sub').value.trim()    : '';
-  const tag    = _layerVisible.tag    ? document.getElementById('tag').value.trim()    : '';
+  const titulo = _layerVisible.titulo ? document.getElementById('titulo').value.trimStart() : '';
+  const sub    = _layerVisible.sub    ? document.getElementById('sub').value.trimStart()    : '';
+  const tag    = _layerVisible.tag    ? document.getElementById('tag').value.trim()    : ''; // tag: trim total (single-line)
   // Detecta fundo escuro usando luminância percebida (pesos corretos para olho humano)
   // bgColor pode ser null quando o fundo é um asset PNG e não um fill do frame
   function _lum(rgba) {
@@ -4595,6 +5387,24 @@ function drawEditableText(c, W, H, meta) {
 
   // Posições dinâmicas (glass cresce com texto); fallback para posições fixas do Figma
   const dyn = meta.dynLayout;
+
+  // DECORATIVOS (parte 1 — ABAIXO dos campos): vetores/textos do bloco com z-order menor que o field:*
+  // Acompanham o deltaY do bloco se houve reflow.
+  function _drawDecoratives(filterFn) {
+    if (!meta.decorativeLayers?.length) return;
+    const _blk = meta.blocoTX || meta.glassBox;
+    const _deltaY = _blk ? ((dyn?.glassY ?? _blk.y) - _blk.y) : 0;
+    // Ordena por zIndex (menor primeiro = mais ao fundo) para preservar empilhamento Figma
+    const _sorted = meta.decorativeLayers.slice().sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
+    for (const _deco of _sorted) {
+      if (!_deco.img) continue;
+      if (!filterFn(_deco)) continue;
+      const _drawY = _blk ? (_blk.y + _deltaY + _deco.relY) : _deco.bb.y;
+      c.drawImage(_deco.img, _deco.bb.x, _drawY, _deco.bb.w, _deco.bb.h);
+    }
+  }
+  // Decorativos com zIndex < field:* → desenha ANTES dos textos (ficam abaixo)
+  _drawDecoratives(d => d.belowFields);
 
   // TAG
   const fTag = meta.fields.tag;
@@ -4694,7 +5504,7 @@ function drawEditableText(c, W, H, meta) {
   if (fT && titulo) {
     if (!fT.textStyle?.fontSize) { dbg('WARN: field:titulo sem textStyle.fontSize — Figma não retornou estilo'); }
     else {
-    const tFS    = fT.textStyle.fontSize;
+    const tFS    = _getEffectiveFontSize('titulo', fT.textStyle.fontSize);
     const tFW    = fT.textStyle.fontWeight  || 400;
     const tFStyle = fT.textStyle.fontStyle  || 'normal';
     // Cor: tenta campo direto → herda de outro campo do mesmo layout → fallback por tema
@@ -4702,7 +5512,7 @@ function drawEditableText(c, W, H, meta) {
               || meta.fields.texto?.textStyle?.color
               || meta.fields.tag?.textStyle?.color
               || (isDark ? '#fdfdfd' : '#0c0a08');
-    const tLH  = fT.textStyle.lineHeightPx || Math.round(tFS * 1.2);
+    const tLH  = _getEffectiveLineHeight('titulo', fT.textStyle.lineHeightPx || Math.round(tFS * 1.2));
     const tFF  = fT.textStyle.fontFamily  ? `'${fT.textStyle.fontFamily}',sans-serif` : 'sans-serif';
     const textX = fT.textBB?.x ?? fT.x;
     const textW = effectiveTextWidth(fT, textX, meta);
@@ -4716,8 +5526,6 @@ function drawEditableText(c, W, H, meta) {
 
     // Fix 1: split por \n para suportar Enter como quebra de linha forçada
     const tParagrafos = titulo.split('\n');
-    // Remove parágrafo vazio no final (Figma frequentemente adiciona \n no final do characters)
-    while (tParagrafos.length > 1 && tParagrafos[tParagrafos.length - 1].trim() === '') tParagrafos.pop();
 
     // C8 — entra no caminho de ranges só quando o operador aplicou formatação explicitamente;
     // enquanto não aplicou nada, usa o caminho Figma mesmo com texto editado
@@ -4803,11 +5611,11 @@ function drawEditableText(c, W, H, meta) {
   if (fS && sub) {
     if (!fS.textStyle?.fontSize) { dbg('WARN: field:texto sem textStyle.fontSize — Figma não retornou estilo'); }
     else {
-    const sFS    = fS.textStyle.fontSize;
+    const sFS    = _getEffectiveFontSize('texto', fS.textStyle.fontSize);
     const sFW    = fS.textStyle.fontWeight  || 400;
     const sFStyle = fS.textStyle.fontStyle  || 'normal';
     const sClr = fS.textStyle.color       || (isDark ? '#fdfdfd' : '#545454');
-    const sLH  = fS.textStyle.lineHeightPx || Math.round(sFS * 1.4);
+    const sLH  = _getEffectiveLineHeight('texto', fS.textStyle.lineHeightPx || Math.round(sFS * 1.4));
     const sFF  = fS.textStyle.fontFamily  ? `'${fS.textStyle.fontFamily}',sans-serif` : 'sans-serif';
     c.letterSpacing = (fS.textStyle?.letterSpacing || 0) + 'px';
     c.textAlign = fS.textStyle?.align || 'left';
@@ -4818,14 +5626,15 @@ function drawEditableText(c, W, H, meta) {
     const sBaseY = dyn?.positions.texto != null ? dyn.positions.texto : fS.y;
     const sTextOffY = (fS.textBB?.y ?? fS.y) - fS.y;
     // Fix 4: cascade reflow — em layouts sem glass dinâmico, empurra subtítulo abaixo do título se necessário
+    // PORÉM: se título e texto estão em regiões claramente separadas (gap > 60px no Figma), são INDEPENDENTES.
+    // Aí lineHeight/fontSize do título não afeta a posição do texto (ex: layouts onde título fica fora do blocoTX).
     const sGapOriginal = fT ? Math.max(fS.y - fT.y - (fT.h ?? 0), 10) : 10;
+    const _independentes = fT && (fS.y - (fT.y + (fT.h ?? 0))) > 60;
     const sMinY = tituloBottom + sGapOriginal;
-    let cy = dyn ? sBaseY + sTextOffY : Math.max(sBaseY + sTextOffY, sMinY);
+    let cy = (dyn || _independentes) ? sBaseY + sTextOffY : Math.max(sBaseY + sTextOffY, sMinY);
 
     // Fix 1: split por \n para suportar Enter como quebra de linha forçada
     const sParagrafos = sub.split('\n');
-    // Remove parágrafo vazio no final (Figma frequentemente adiciona \n no final do characters)
-    while (sParagrafos.length > 1 && sParagrafos[sParagrafos.length - 1].trim() === '') sParagrafos.pop();
 
     // C8 — quando operador digitou texto próprio, usa ranges de formatação manual
     // C8 — mesmo critério do título: só entra no caminho de ranges quando há formatação explícita
@@ -4971,40 +5780,182 @@ function drawEditableText(c, W, H, meta) {
     c.letterSpacing = '0px'; c.textAlign = 'left';
   }
 
-  // CAMPOS tx1, tx2… — blocos de texto extras em posição fixa do Figma (sem dynamic repositioning)
+  // CAMPOS EXTRAS — instâncias adicionais: titulo2+, texto2+, tag2+, cta2+
+  // Regra híbrida: se dentro do blocoGlass/blocoTX → usa dyn.positions[key] (reflow);
+  // se fora → posição fixa do Figma. Sem formatação inline (bold/cor) nas extras.
   {
-    const txKeys = Object.keys(meta.fields)
-      .filter(k => /^tx\d+$/.test(k))
-      .sort((a, b) => parseInt(a.slice(2)) - parseInt(b.slice(2)));
-    for (const txKey of txKeys) {
-      const fTxN = meta.fields[txKey];
-      const txVal = document.getElementById('field_' + txKey)?.value?.trim();
-      if (!fTxN || !txVal || !fTxN.textStyle?.fontSize) continue;
-      const nFS  = fTxN.textStyle.fontSize;
-      const nFW  = fTxN.textStyle.fontWeight  || 400;
-      const nClr = fTxN.textStyle.color       || (isDark ? '#fdfdfd' : '#0c0a08');
-      const nLH  = fTxN.textStyle.lineHeightPx || Math.round(nFS * 1.4);
-      const nFF  = fTxN.textStyle.fontFamily  ? `'${fTxN.textStyle.fontFamily}',sans-serif` : 'sans-serif';
-      const nX   = fTxN.textBB?.x ?? fTxN.x;
-      const nW   = effectiveTextWidth(fTxN, nX, meta);
-      c.font = `${nFW} ${nFS}px ${nFF}`;
-      c.fillStyle = nClr;
-      c.textBaseline = 'top';
-      c.textAlign = fTxN.textStyle.align || 'left';
-      c.letterSpacing = (fTxN.textStyle.letterSpacing || 0) + 'px';
-      const nFont = `${nFW} ${nFS}px ${nFF}`;
-      let nCy = (fTxN.textBB?.y ?? fTxN.y);
-      for (const para of txVal.split('\n')) {
-        if (!para.trim()) { nCy += nLH; continue; }
-        const lines = _cachedWrapWords(c, para.split(' ').filter(Boolean), nW, nFont);
-        for (const line of lines) {
-          let wx = nX;
-          for (const word of line) { c.font = nFont; c.fillStyle = nClr; c.fillText(word, wx, nCy); wx += c.measureText(word + ' ').width; }
-          nCy += nLH;
+    const extraKeys = Object.keys(meta.fields)
+      .filter(k => _isTextLayoutKey(k) && _fieldIndex(k) > 1)
+      .sort((a, b) => (meta.fields[a].y ?? 0) - (meta.fields[b].y ?? 0));
+
+    for (const key of extraKeys) {
+      if (!_layerVisible[key]) continue;
+      const type = _fieldType(key);
+      const f    = meta.fields[key];
+      if (!f) continue;
+      const val  = (type === 'tag' || type === 'cta')
+        ? (document.getElementById(_getFieldInputId(key))?.value || '').trim()
+        : (document.getElementById(_getFieldInputId(key))?.value || '').trimStart();
+      if (!val) continue;
+
+      if (type === 'tag') {
+        // Tag extra: renderiza como uppercase na posição fixa (ou dyn se dentro do bloco)
+        const tFS = f.textStyle?.fontSize || 16;
+        const tFW = f.textStyle?.fontWeight || 400;
+        const tFF = f.textStyle?.fontFamily;
+        const tClr = f.textStyle?.color || (isDark ? '#fdfdfd' : '#0c0a08');
+        const tp = f.textBB || f;
+        const tagBaseY = dyn?.positions[key] != null ? dyn.positions[key] : f.y;
+        c.font = `${tFW} ${tFS}px ${tFF ? `'${tFF}',` : ''}'Lato',sans-serif`;
+        c.fillStyle = tClr;
+        c.textBaseline = 'top';
+        c.fillText(val.toUpperCase(), tp.x, tagBaseY + (tp.y - f.y));
+
+      } else if (type === 'cta') {
+        // CTA extra: frame com fill/br próprios + texto do ctatxN correspondente
+        const idx = _fieldIndex(key);
+        const ctatxKey = 'ctatx' + (idx > 1 ? idx : '');
+        const ctatx = meta.fields[ctatxKey];
+        if (!ctatx) { dbg(`CTA ${key} sem par ${ctatxKey} → skip render`); continue; }
+
+        const cFS = ctatx.textStyle?.fontSize   || Math.round(f.h * 0.40);
+        const cFW = ctatx.textStyle?.fontWeight || 400;
+        const cClr= ctatx.textStyle?.color      || (isDark ? '#fdfdfd' : '#0c0a08');
+        const cFF = ctatx.textStyle?.fontFamily ? `'${ctatx.textStyle.fontFamily}',sans-serif` : 'sans-serif';
+        const padH = 60;
+        const minFS = Math.max(12, Math.round(cFS * 0.75));
+        c.font = `${cFW} ${cFS}px ${cFF}`;
+        let finalFS = cFS;
+        let ctaTextW = c.measureText(val).width;
+        if (ctaTextW > f.w - padH) {
+          finalFS = Math.max(minFS, Math.floor(cFS * (f.w - padH) / ctaTextW));
+          c.font = `${cFW} ${finalFS}px ${cFF}`;
+          ctaTextW = c.measureText(val).width;
         }
+        const ctaDynW = Math.max(f.w, ctaTextW + padH);
+        const ctaDynY = dyn?.positions[key] != null ? dyn.positions[key] : f.y;
+        const ctaDynX = f.x;
+
+        const bR = f.fillR ?? 255, bG = f.fillG ?? 255, bB = f.fillB ?? 255;
+        const bOp = f.fillOpacity ?? 1;
+        const bBr = f.br ?? 50;
+        c.save();
+        c.fillStyle = `rgba(${bR},${bG},${bB},${bOp})`;
+        roundRect(c, ctaDynX, ctaDynY, ctaDynW, f.h, bBr);
+        c.fill(); c.restore();
+
+        c.fillStyle = cClr;
+        c.textBaseline = 'middle';
+        c.textAlign = 'center';
+        c.letterSpacing = (ctatx.textStyle?.letterSpacing || 0) + 'px';
+        c.fillText(val, ctaDynX + ctaDynW / 2, ctaDynY + f.h / 2);
+        c.letterSpacing = '0px'; c.textAlign = 'left';
+
+      } else {
+        // titulo / texto: render multi-linha com suporte a ranges de formatação inline (B + cor)
+        if (!f.textStyle?.fontSize) continue;
+        const nFS    = _getEffectiveFontSize(key, f.textStyle.fontSize);
+        const nFW    = f.textStyle.fontWeight  || 400;
+        const nFStyle = f.textStyle.fontStyle  || 'normal';
+        const nClr   = f.textStyle.color       || (isDark ? '#fdfdfd' : '#0c0a08');
+        const nLH    = _getEffectiveLineHeight(key, f.textStyle.lineHeightPx || Math.round(nFS * 1.4));
+        const nFF    = f.textStyle.fontFamily  ? `'${f.textStyle.fontFamily}',sans-serif` : 'sans-serif';
+        const nX     = f.textBB?.x ?? f.x;
+        const nW     = effectiveTextWidth(f, nX, meta);
+        c.textBaseline = 'top';
+        c.textAlign = f.textStyle.align || 'left';
+        c.letterSpacing = (f.textStyle.letterSpacing || 0) + 'px';
+
+        // Y: dyn se participou do reflow, senão Figma
+        const baseY    = dyn?.positions[key] != null ? dyn.positions[key] : f.y;
+        const textOffY = (f.textBB?.y ?? f.y) - f.y;
+        let nCy = baseY + textOffY;
+
+        const inputId = _getFieldInputId(key); // ex: field_titulo2 / field_texto2
+        const ranges  = _fieldFormatRanges[inputId] || [];
+        const paragrafos = val.split('\n');
+
+        if (ranges.length > 0) {
+          // Mesmo caminho de ranges dos primários: base = segments do Figma, ranges sobrescrevem
+          const styledFigma = segmentsToStyledWords(f.textStyle?.segments, nFW, nClr);
+          const allLines = [];
+          let charOffset = 0;
+          for (const para of paragrafos) {
+            if (para.trim() === '') { allLines.push([]); charOffset += para.length + 1; continue; }
+            const paraWords = para.split(/\s+/).filter(Boolean);
+            const pBase = styledFigma
+              ? mapWordsToSegmentStyles(paraWords, styledFigma, nFW, nClr)
+              : paraWords.map(w => ({ word: w, weight: nFW, color: nClr, underline: false }));
+            const rangesLocal = ranges.map(r => ({ ...r, start: r.start - charOffset, end: r.end - charOffset })).filter(r => r.end > 0 && r.start < para.length);
+            allLines.push(..._cachedWrapStyledWords(c, _aplicarRangesSobreBase(para, pBase, rangesLocal, nFW), nW, nFF, nFS, nFStyle));
+            charOffset += para.length + 1;
+          }
+          for (const line of allLines) {
+            let wx = nX;
+            for (const sw of line) {
+              c.font = `${nFStyle} ${sw.weight} ${nFS}px ${nFF}`;
+              c.fillStyle = sw.color;
+              c.fillText(sw.word, wx, nCy);
+              wx += c.measureText(sw.word + ' ').width;
+            }
+            nCy += nLH;
+          }
+        } else {
+          // Sem ranges: respeita styledSegments do Figma se existirem
+          const styledWords = segmentsToStyledWords(f.textStyle?.segments, nFW, nClr);
+          if (styledWords) {
+            const allLines = [];
+            let _swOff = 0;
+            for (const para of paragrafos) {
+              if (para.trim() === '') { allLines.push([]); continue; }
+              const paraWords = para.split(/\s+/).filter(Boolean);
+              const slice = styledWords.slice(_swOff, _swOff + paraWords.length);
+              const pStyled = slice.map((sw, i) => ({ ...sw, word: paraWords[i] ?? sw.word }));
+              while (pStyled.length < paraWords.length)
+                pStyled.push({ word: paraWords[pStyled.length], weight: nFW, color: nClr, underline: false, space: ' ' });
+              _swOff += paraWords.length;
+              allLines.push(..._cachedWrapStyledWords(c, pStyled, nW, nFF, nFS, nFStyle));
+            }
+            for (const line of allLines) {
+              let wx = nX;
+              for (const sw of line) {
+                c.font = `${nFStyle} ${sw.weight} ${nFS}px ${nFF}`;
+                c.fillStyle = sw.color;
+                c.fillText(sw.word, wx, nCy);
+                wx += c.measureText(sw.word + ' ').width;
+              }
+              nCy += nLH;
+            }
+          } else {
+            const nFont = `${nFStyle} ${nFW} ${nFS}px ${nFF}`;
+            for (const para of paragrafos) {
+              if (para.trim() === '') { nCy += nLH; continue; }
+              const lines = _cachedWrapWords(c, para.split(' ').filter(Boolean), nW, nFont);
+              for (const line of lines) {
+                let wx = nX;
+                for (const word of line) { c.font = nFont; c.fillStyle = nClr; c.fillText(word, wx, nCy); wx += c.measureText(word + ' ').width; }
+                nCy += nLH;
+              }
+            }
+          }
+        }
+        c.letterSpacing = '0px'; c.textAlign = 'left';
       }
-      c.letterSpacing = '0px'; c.textAlign = 'left';
     }
+  }
+
+  // DECORATIVOS (parte 2 — ACIMA dos campos): vetores/textos do bloco com z-order maior que o field:*
+  _drawDecoratives(d => !d.belowFields);
+
+  // THUMB do autor: se está NESTED (não substituído por __thumb__ top-level virtual),
+  // renderiza aqui. Se é top-level, é desenhado em drawWithLayerStack via __thumb__.
+  const _hasThumbTopLevel = (meta.layerDefs || []).some(d => d.id === '__thumb__');
+  const _hasThumbNested = !_hasThumbTopLevel && (
+    (meta.fields.thumb && !meta.attachedAssets?.some(a => a.key === 'thumb'))
+    || !!meta.thumbMaskNodeId
+  );
+  if (_hasThumbNested) {
+    drawThumbMasked(c, W, H, meta, 0);
   }
 
   // Desenha assets "attached" ao bloco (estrelas, créditos, etc. dentro do blocoTX/blocoGlass)
@@ -5036,10 +5987,33 @@ function drawEditableText(c, W, H, meta) {
       if (_seenPos.has(_posKey)) { dbg(`skip attachedAsset "${_att.key}" dup @ (${_s.x},${_s.y})`); continue; }
       _seenPos.add(_posKey);
 
-      // Assets abaixo do bottom original de field:texto: recebem delta extra do crescimento do texto
-      const _extraDelta = (_fSBot != null && _s.y >= _fSBot) ? _textoGrowth : 0;
-      dbg(`draw attachedAsset "${_att.key}" nodeId=${_att.slot.nodeId} @ (${_s.x},${(_s.y+_deltaY+_extraDelta).toFixed(0)}) orig=(${_s.x},${_s.y}) size=${_s.w}×${_s.h}`);
-      c.drawImage(_loaded.img, _s.x, _s.y + _deltaY + _extraDelta, _s.w, _s.h);
+      // Cada asset dentro do blocoTX se move JUNTO com o campo editável mais próximo (por Y).
+      // O blocoTX é uma unidade: thumb ao lado de field:texto acompanha field:texto, não o glass inteiro.
+      let _itemDeltaY = _deltaY; // fallback: delta uniforme do glass (quando sem campos no dyn)
+      if (dyn?.positions) {
+        // Coleta deltas por campo: para cada campo no dyn, calcula quanto ele se moveu vs posição Figma
+        const _fieldDeltas = [];
+        for (const [_fKey, _dynY] of Object.entries(dyn.positions)) {
+          const _fDef = meta.fields[_fKey];
+          if (!_fDef) continue;
+          const _origY = _fDef.y; // posição original do Figma
+          _fieldDeltas.push({ origY: _origY, delta: _dynY - _origY });
+        }
+        if (_fieldDeltas.length > 0) {
+          // Encontra o campo cuja posição Figma é mais próxima do asset
+          _fieldDeltas.sort((a, b) => Math.abs(a.origY - _s.y) - Math.abs(b.origY - _s.y));
+          _itemDeltaY = _fieldDeltas[0].delta;
+        }
+      }
+      // Thumb: se o layout tem maskThumb (ou field:thumb editável), renderiza via drawThumbMasked
+      // (permite upload de imagem do operador). Sem offsetY — segue posição do Figma.
+      if (_att.key === 'thumb' && (meta.thumbMaskNodeId || meta.fields.thumb)) {
+        dbg(`draw thumb (masked) na posição Figma`);
+        drawThumbMasked(c, meta.W, meta.H, meta, 0);
+        continue;
+      }
+      dbg(`draw attachedAsset "${_att.key}" nodeId=${_att.slot.nodeId} @ (${_s.x},${(_s.y+_itemDeltaY).toFixed(0)}) orig=(${_s.x},${_s.y}) size=${_s.w}×${_s.h} deltaY=${_deltaY}→${_itemDeltaY}`);
+      c.drawImage(_loaded.img, _s.x, _s.y + _itemDeltaY, _s.w, _s.h);
     }
   }
 }
@@ -5140,6 +6114,8 @@ function _hideVariantBanner() {
 function _updateVariantSuggestion(meta) {
   const group = _variantIndex[meta.variantGroup];
   if (!group || group.length < 2) { _hideVariantBanner(); return; }
+  // Size sets não usam banner de sugestão de fonte
+  if (group.some(m => m.isSizeVariant)) { _hideVariantBanner(); return; }
 
   const lines = meta.dynLayout?.titleLines || 0;
   const LINE_THRESHOLD = 2;
@@ -5173,7 +6149,13 @@ async function switchVariant(targetId) {
   _hideVariantBanner();
   await selectLayout(targetId);
   // Restaura texto e formatação após buildFieldUI sobrescrever com defaults do Figma
+  // tag e cta só são restaurados se o novo layout realmente os tem (evita vazar texto entre formatos)
+  const _newMeta = activeLayoutMeta;
+  const _canRestoreTag = !!_newMeta?.fields?.tag || !!_newMeta?.tagPillFrame;
+  const _canRestoreCta = !!_newMeta?.fields?.cta && !!_newMeta?.fields?.ctatx;
   for (const [id, val] of Object.entries(saved)) {
+    if (id === 'tag' && !_canRestoreTag) continue;
+    if (id === 'cta' && !_canRestoreCta) continue;
     const el = document.getElementById(id);
     if (el && val != null) el.value = val;
   }
@@ -5188,6 +6170,8 @@ function _updateVariantToggle(meta) {
   if (!el) return;
   const group = _variantIndex[meta?.variantGroup];
   if (!group || group.length < 2) { el.style.display = 'none'; return; }
+  // Size sets não usam toggle de variante no painel lateral
+  if (group.some(m => m.isSizeVariant)) { el.style.display = 'none'; return; }
 
   el.style.display = 'flex';
   el.innerHTML = group.map(m => {
@@ -5242,6 +6226,31 @@ function abrirModalSalvar() {
     input.value = `banner-${activeLayoutMeta.label.replace(/[/\\:*?"<>|]/g, '-')}`;
   }
   setExportFormato(exportFormato); // sincroniza visual do toggle
+
+  // Exibe checkboxes de formatos se o layout pertence a um set de tamanhos
+  const setRow    = document.getElementById('modalSalvarSetRow');
+  const setList   = document.getElementById('modalSalvarSetList');
+  const btnTodos  = document.getElementById('modalSalvarBtnTodos');
+  if (setRow && setList && btnTodos) {
+    const grp     = activeLayoutMeta?.variantGroup;
+    const members = grp ? (_variantIndex[grp] || []) : [];
+    const isSet   = members.some(m => m.isSizeVariant);
+    if (isSet) {
+      setList.innerHTML = members.map(m => {
+        const label = _formatSize(m.variantName || `${m.W}×${m.H}`);
+        return `<label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-primary);cursor:pointer">
+          <input type="checkbox" value="${m.id}" checked style="accent-color:var(--epic-red);width:15px;height:15px;flex-shrink:0">
+          <span>${label}</span>
+        </label>`;
+      }).join('');
+      setRow.style.display   = 'block';
+      btnTodos.style.display = 'block';
+    } else {
+      setRow.style.display   = 'none';
+      btnTodos.style.display = 'none';
+    }
+  }
+
   document.getElementById('modalSalvar').style.display = 'flex';
   setTimeout(() => { input.select(); input.focus(); }, 50);
 }
@@ -5279,6 +6288,166 @@ function confirmarDownload() {
     setStatus(`${fmt.toUpperCase()} salvo: ${nomeArq}`, 'ok');
     document.getElementById('btnRender').disabled = false;
   }, 60);
+}
+
+// Abre modal com checkboxes para escolher quais formatos do set baixar
+function downloadSet(variantGroup) {
+  const group = _variantIndex[variantGroup];
+  if (!group || group.length < 1) return;
+  const list = document.getElementById('modalDownloadSetList');
+  list.innerHTML = group.map(m => {
+    const label = _formatSize(m.variantName || `${m.W}×${m.H}`);
+    return `<label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-primary);cursor:pointer">
+      <input type="checkbox" value="${m.id}" checked style="accent-color:var(--epic-red);width:15px;height:15px;flex-shrink:0">
+      <span>${label}</span>
+    </label>`;
+  }).join('');
+  list.dataset.group = variantGroup;
+  document.getElementById('modalDownloadSet').style.display = 'flex';
+}
+
+// Executa download dos formatos selecionados (ZIP se múltiplos, direto se 1)
+// group: array de metas a baixar; variantGroup: string do grupo (nome do set)
+async function _doDownloadSet(group, variantGroup) {
+  const savedId = activeLayoutMeta?.id;
+  // Salva valores de TODOS os inputs (primários + extras) — chave = ID do input, valor = string
+  const saved = {
+    titulo: document.getElementById('titulo')?.value,
+    sub:    document.getElementById('sub')?.value,
+    tag:    document.getElementById('tag')?.value,
+    cta:    document.getElementById('cta')?.value,
+  };
+  // Extras dinâmicos (field_titulo2, field_texto2, field_tag2, field_cta2, …)
+  document.querySelectorAll('[id^="field_"]').forEach(el => {
+    saved[el.id] = el.value;
+  });
+  const savedRanges = {
+    titulo: [...(_fieldFormatRanges.titulo || [])],
+    sub:    [...(_fieldFormatRanges.sub    || [])],
+  };
+  const fmt  = exportFormato || 'png';
+  const mime = fmt === 'jpg' ? 'image/jpeg' : 'image/png';
+  const qual = fmt === 'jpg' ? 0.92 : undefined;
+
+  // 1 formato → download direto sem ZIP
+  if (group.length === 1) {
+    const meta = group[0];
+    setStatus(`Renderizando ${_formatSize(meta.variantName || meta.W+'×'+meta.H)}...`, 'busy');
+    await switchVariant(meta.id);
+    await new Promise(r => setTimeout(r, 120));
+    ctx.imageSmoothingQuality = 'high';
+    draw();
+    await new Promise(r => requestAnimationFrame(r));
+    const nomeDim = (meta.variantName || `${meta.W}x${meta.H}`).replace(/[/\\:*?"<>|]/g, '-');
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL(mime, qual);
+    a.download = `${variantGroup.replace(/[/\\:*?"<>|]/g, '-')}-${nomeDim}.${fmt}`;
+    a.click();
+    setStatus(`Formato ${nomeDim} baixado.`, 'ok');
+    if (savedId) { await switchVariant(savedId); _restaurarTextoSalvo(saved, savedRanges); }
+    return;
+  }
+
+  // Múltiplos formatos → ZIP
+  setStatus('Carregando JSZip...', 'busy');
+  if (!window.JSZip) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+      s.onload = res; s.onerror = () => rej(new Error('JSZip não carregou'));
+      document.head.appendChild(s);
+    });
+  }
+
+  const zip = new JSZip();
+  for (const meta of group) {
+    setStatus(`Renderizando ${_formatSize(meta.variantName || meta.W+'×'+meta.H)}...`, 'busy');
+    await switchVariant(meta.id);
+    await new Promise(r => setTimeout(r, 120));
+    ctx.imageSmoothingQuality = 'high';
+    draw();
+    await new Promise(r => requestAnimationFrame(r));
+    const base64  = canvas.toDataURL(mime, qual).split(',')[1];
+    const nomeDim = (meta.variantName || `${meta.W}x${meta.H}`).replace(/[/\\:*?"<>|]/g, '-');
+    const grupo   = variantGroup.replace(/[/\\:*?"<>|]/g, '-');
+    zip.file(`${grupo}-${nomeDim}.${fmt}`, base64, { base64: true });
+  }
+
+  if (savedId) {
+    await switchVariant(savedId);
+    _restaurarTextoSalvo(saved, savedRanges);
+  }
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${variantGroup.replace(/[/\\:*?"<>|]/g, '-')}.zip`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  setStatus(`ZIP com ${group.length} formatos baixado.`, 'ok');
+}
+
+// Chamado pelo modal do card (botão "⬇ Baixar formatos" no card)
+async function confirmarDownloadSet() {
+  document.getElementById('modalDownloadSet').style.display = 'none';
+  const list         = document.getElementById('modalDownloadSetList');
+  const variantGroup = list.dataset.group;
+  const checkedIds   = [...list.querySelectorAll('input[type=checkbox]:checked')].map(el => el.value);
+  if (!checkedIds.length) { setStatus('Nenhum formato selecionado.', 'err'); return; }
+  const group = (_variantIndex[variantGroup] || []).filter(m => checkedIds.includes(m.id));
+  if (!group.length) return;
+  await _doDownloadSet(group, variantGroup);
+}
+
+// Chamado pelo botão "Baixar selecionados" dentro do modalSalvar
+async function confirmarDownloadSetFromModal() {
+  const list         = document.getElementById('modalSalvarSetList');
+  const variantGroup = activeLayoutMeta?.variantGroup;
+  const checkedIds   = [...(list?.querySelectorAll('input[type=checkbox]:checked') || [])].map(el => el.value);
+  if (!checkedIds.length) { setStatus('Nenhum formato selecionado.', 'err'); return; }
+  fecharModalSalvar();
+  const group = (_variantIndex[variantGroup] || []).filter(m => checkedIds.includes(m.id));
+  if (!group.length) return;
+  await _doDownloadSet(group, variantGroup);
+}
+
+// Restaura inputs e ranges após loop de export do set
+// saved: { id → value } — pode conter IDs primários (titulo, sub, tag, cta) e extras (field_titulo2, …)
+function _restaurarTextoSalvo(saved, savedRanges) {
+  const _m = activeLayoutMeta;
+  const _canTag = !!_m?.fields?.tag || !!_m?.tagPillFrame;
+  const _canCta = !!_m?.fields?.cta && !!_m?.fields?.ctatx;
+
+  // Mapeamento inverso ID → key pra validar se o layout destino tem o campo
+  function _idToKey(id) {
+    if (id === 'titulo') return 'titulo';
+    if (id === 'sub')    return 'texto';
+    if (id === 'tag')    return 'tag';
+    if (id === 'cta')    return 'cta'; // par cta+ctatx
+    const m = /^field_(.+)$/.exec(id);
+    return m ? m[1] : null;
+  }
+
+  for (const [id, val] of Object.entries(saved)) {
+    if (id === 'tag' && !_canTag) continue;
+    if (id === 'cta' && !_canCta) continue;
+    // Para extras: só restaura se o layout destino tem o campo correspondente
+    const key = _idToKey(id);
+    if (key && /\d$/.test(key)) { // é uma instância extra (titulo2, texto2, cta2, …)
+      const type = _fieldType(key);
+      // cta extra precisa do par ctatx
+      if (type === 'cta') {
+        const idx = _fieldIndex(key);
+        const pairKey = 'ctatx' + (idx > 1 ? idx : '');
+        if (!_m?.fields?.[key] || !_m?.fields?.[pairKey]) continue;
+      } else if (!_m?.fields?.[key]) continue;
+    }
+    const el = document.getElementById(id); if (el && val != null) el.value = val;
+  }
+  _fieldFormatRanges.titulo = savedRanges.titulo;
+  _fieldFormatRanges.sub    = savedRanges.sub;
+  _rangesStyledCache.clear();
+  drawDebounced();
 }
 
 async function copiarParaClipboard() {
@@ -5338,13 +6507,17 @@ function _stripScroll(dir) {
   if (strip) strip.scrollBy({ left: dir * 300, behavior: 'smooth' });
 }
 
-// Mostra/oculta a seta conforme overflow atual do strip
+// Mostra/oculta as setas ‹ › conforme posição atual do scroll do strip
 function _stripUpdateArrows() {
   if (window.innerWidth <= 600) return;
   const strip = document.getElementById('layoutStrip');
+  const prev  = document.getElementById('stripPrev');
   const next  = document.getElementById('stripNext');
-  if (!strip || !next) return;
-  next.style.display = strip.scrollWidth > strip.clientWidth + 4 ? 'flex' : 'none';
+  if (!strip) return;
+  const scrollLeft  = strip.scrollLeft;
+  const scrollRight = strip.scrollWidth - strip.clientWidth - scrollLeft;
+  if (prev) prev.style.display = scrollLeft  > 4 ? 'flex' : 'none';
+  if (next) next.style.display = scrollRight > 4 ? 'flex' : 'none';
 }
 
 // Listener de scroll no strip (atualiza visibilidade da seta ao rolar)
@@ -5359,21 +6532,55 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 window.scrollTo(0, 0);
 
 restoreLayersState();
-// No modo local, tenta buscar token do servidor antes de inicializar
-// (permite que celulares na mesma rede usem o token salvo no desktop)
-if (IS_LOCAL && !getFigmaToken()) {
-  fetch('/token').then(r => r.json()).then(d => {
-    if (d.token) {
-      localStorage.setItem(TOKEN_STORAGE_KEY, d.token);
-      dbg('Token carregado do servidor');
-    }
-  }).catch(() => {}).finally(() => {
-    inicializarFigma();
-  });
-} else {
-  inicializarFigma();
+
+// Inicialização: tenta /config primeiro (servidor com cliente ativo configurado)
+// Se configurado → usa token+fileKey do servidor, pula modal, operador nunca vê token
+// Se não configurado → fallback para builtin → fallback para modal
+function _aplicarConfig(cfg, fonte) {
+  if (!cfg || !cfg.token || !cfg.fileKey) return false;
+  localStorage.setItem(TOKEN_STORAGE_KEY, cfg.token);
+  const _fkMatch = cfg.fileKey.match(/figma\.com\/(?:design|file)\/([a-zA-Z0-9_-]+)/);
+  FIGMA_FILE_KEY = _fkMatch ? _fkMatch[1] : cfg.fileKey;
+  _serverConfigured = true;
+  dbg(`Config aplicada (fonte: ${fonte}): cliente="${cfg.activeClient || cfg.name || '?'}" fileKey=${FIGMA_FILE_KEY}`);
+  return true;
 }
-switchFotoTab('figma');
+
+(async function _startup() {
+  // 1. Tenta /config endpoint (servidor com server.js rodando)
+  try {
+    const cfgRes = await fetch('/config');
+    if (cfgRes.ok) {
+      const cfg = await cfgRes.json();
+      if (cfg.configured && _aplicarConfig(cfg, '/config endpoint')) {
+        inicializarFigma(); switchFotoTab('figma'); return;
+      }
+    }
+  } catch(e) { /* segue pro fallback */ }
+
+  // 2. Tenta builtin config (hardcoded no v38 — GitHub Pages)
+  const builtin = _decodeBuiltinConfig();
+  if (builtin) {
+    const active = builtin.clients?.find(c => c.name === builtin.activeClient) || builtin.clients?.[0];
+    if (active && _aplicarConfig({ ...active, activeClient: active.name }, 'builtin (hardcoded)')) {
+      inicializarFigma(); switchFotoTab('figma'); return;
+    }
+  }
+
+  // Fallback: modo antigo (localStorage + modal)
+  if (IS_LOCAL && !getFigmaToken()) {
+    try {
+      const tokenRes = await fetch('/token');
+      const d = await tokenRes.json();
+      if (d.token) {
+        localStorage.setItem(TOKEN_STORAGE_KEY, d.token);
+        dbg('Token carregado do servidor (modo legado)');
+      }
+    } catch(e) {}
+  }
+  inicializarFigma();
+  switchFotoTab('figma');
+})();
 </script>
 
 <!-- Remoção de fundo: carregamento lazy via módulo ES (precisa de contexto type=module) -->

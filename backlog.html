@@ -293,7 +293,7 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════ -->
-  <div class="section-title">Sugestões Claude <span class="badge">S1–S16</span></div>
+  <div class="section-title">Sugestões Claude <span class="badge">S1–S18</span></div>
   <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Melhorias no que já existe — bugs de UX, robustez, performance e qualidade de código.</p>
 
   <!-- S1 -->
@@ -641,6 +641,53 @@
         <li>Ao clicar em "Limpar", além de esvaziar o textarea, zerar os ranges de formatação (<code>styledWords = []</code>)</li>
         <li>Restaurar também o <code>fontWeight</code> e <code>fontColor</code> para os valores originais do Figma do campo</li>
         <li>Comportamento esperado: após Limpar, o operador começa a digitar em fonte regular, sem herdar formatação anterior</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S17 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S17</span>
+      <span class="card-title">Render de set em background (OffscreenCanvas)</span>
+      <span class="card-pills">
+        <span class="pill">🔴 Complexo</span>
+        <span class="pill">⚠️ Atenção</span>
+        <span class="pill pill-time">⏱️ ~1 dia</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Ao exportar sets de tamanho (ZIP com múltiplos formatos), cada formato é renderizado no canvas visível — o usuário vê cada banner piscando na tela durante o loop. Com <code>OffscreenCanvas</code>, o processo rodaria em background sem alterar o canvas ou layout ativos.</p>
+      <ul class="card-changes">
+        <li>Criar <code>OffscreenCanvas</code> por formato e passar <code>canvas/ctx</code> como parâmetro para <code>draw()</code></li>
+        <li><strong>Bloqueador principal:</strong> <code>draw()</code> usa variáveis globais <code>canvas</code> e <code>ctx</code> em dezenas de lugares — refactor não trivial</li>
+        <li>Após refactor: loop de ZIP não toca o canvas visível nem o layout ativo</li>
+        <li><strong>Risco:</strong> mudança arquitetural central; todos os paths de render precisam ser retestados</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- S18 -->
+  <details class="card">
+    <summary>
+      <span class="card-code">S18</span>
+      <span class="card-title">FIGMA_FILE_KEY configurável pela UI</span>
+      <span class="card-pills">
+        <span class="pill">🟢 Simples</span>
+        <span class="pill">✅ Seguro</span>
+        <span class="pill pill-time">⏱️ ~1h</span>
+      </span>
+      <span class="card-chevron">›</span>
+    </summary>
+    <div class="card-body">
+      <p class="card-desc">Hoje a <code>FIGMA_FILE_KEY</code> está hardcoded no HTML (~linha 1308). Para apontar a ferramenta para outro arquivo Figma, é preciso editar o código e fazer deploy. Tornar configurável pela UI, persistindo em localStorage como o token.</p>
+      <ul class="card-changes">
+        <li>Salvar em <code>localStorage</code> (chave <code>figma_file_key</code>), ler na inicialização</li>
+        <li>Reusar o modal do token: adicionar campo "File Key" abaixo do campo de token</li>
+        <li>Botão pequeno na UI (engrenagem ou similar) para reabrir o modal e trocar arquivo a qualquer momento</li>
+        <li>Ao trocar a key, recarregar lista de clientes/layouts (<code>discoverAndBuildLayouts</code>)</li>
+        <li>Validação simples: alertar quando a key é inválida (Figma retorna 404)</li>
       </ul>
     </div>
   </details>
