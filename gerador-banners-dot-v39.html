@@ -2547,6 +2547,9 @@ async function extractLayoutMeta(meta) {
         if (name === 'blocoTag') continue;
         if (/^blocoTX\d*$/i.test(name)) continue;
         if (name === 'blocoGlass') continue;
+        // Skip máscaras (renderizadas via drawFotoMasked/drawThumbMasked, não como decorativo)
+        if (/^mask(Foto|Thumb)?$/i.test(name)) continue;
+        if (lower.includes('mask') && (name === 'maskFoto' || name === 'maskThumb')) continue;
         // Skip tipos não exportáveis e nós sem ID
         if (!child.id) continue;
         if (_UNEXPORTABLE_TYPES.has(child.type)) continue;
@@ -4408,9 +4411,17 @@ function buildLayerDefs(meta, frameNode) {
   // __thumb__: SUBSTITUI a camada Figma que contém maskThumb/field:thumb (mesma lógica do foto).
   // IMPORTANTE: thumbIdx é do `children` (Figma original), mas defs já foi modificado pela inserção
   // do __foto__ quando foto não era top-level (defs tem 1 elemento extra). Ajusta o índice.
+  // EXCEÇÃO: se o container top-level for blocoTX/blocoGlass (renderizado dinamicamente), NÃO substitui —
+  // o thumb fica nested e é desenhado via fallback em drawEditableText.
   const thumbNodeId = meta.thumbMaskNodeId || meta.fields.thumb?.nodeId;
   let thumbIdx = thumbNodeId ? children.findIndex(c => _nodeContains(c, thumbNodeId)) : -1;
-  const thumbIsTopLevel = thumbIdx >= 0;
+  const thumbContainerChild = thumbIdx >= 0 ? children[thumbIdx] : null;
+  const thumbContainerIsDynamicBlock = thumbContainerChild && (
+    thumbContainerChild.id === meta.blocoTX?.nodeId
+    || thumbContainerChild.id === meta.glassBox?.nodeId
+    || thumbContainerChild.id === meta.tagPillFrame?.nodeId
+  );
+  const thumbIsTopLevel = thumbIdx >= 0 && !thumbContainerIsDynamicBlock;
   if (thumbIsTopLevel) {
     // Ajuste: se foto NÃO era top-level, fotoDef foi INSERIDO em defs[fotoIdx], deslocando tudo a partir dali
     if (!fotoIsTopLevel && thumbIdx >= fotoIdx) thumbIdx++;
@@ -4419,9 +4430,9 @@ function buildLayerDefs(meta, frameNode) {
     thumbDef.bb = origThumbDef.bb;
     defs.splice(thumbIdx, 1, thumbDef);
     dbg(`__thumb__ substituiu top-level "${origThumbDef.name}" (${origThumbDef.id})`);
+  } else if (thumbContainerIsDynamicBlock) {
+    dbg(`__thumb__ NÃO criado — maskThumb está dentro de "${thumbContainerChild.name}" (bloco dinâmico). Render via fallback em drawEditableText.`);
   }
-  // Se thumb é nested (não top-level): NÃO insere __thumb__ — o thumb já é parte do PNG do container,
-  // que é desenhado normalmente. drawThumbMasked é chamado em drawEditableText nesse caso.
 
   // __text__: posiciona a camada de texto editável.
   // Se o container é blocoGlass ou blocoTX → INSERE acima (não substitui) para preservar
@@ -5949,13 +5960,30 @@ function drawEditableText(c, W, H, meta) {
 
   // THUMB do autor: se está NESTED (não substituído por __thumb__ top-level virtual),
   // renderiza aqui. Se é top-level, é desenhado em drawWithLayerStack via __thumb__.
+  // OffsetY: acompanha o campo de texto mais próximo (por Y) — quando texto se move via reflow,
+  // o thumb (avatar do autor) move junto. Sem offset, o thumb e o texto descolam visualmente.
   const _hasThumbTopLevel = (meta.layerDefs || []).some(d => d.id === '__thumb__');
   const _hasThumbNested = !_hasThumbTopLevel && (
     (meta.fields.thumb && !meta.attachedAssets?.some(a => a.key === 'thumb'))
     || !!meta.thumbMaskNodeId
   );
   if (_hasThumbNested) {
-    drawThumbMasked(c, W, H, meta, 0);
+    // Calcula offsetY baseado no campo mais próximo (em Y original) do thumb
+    let _thumbOffsetY = 0;
+    if (dyn?.positions) {
+      const _thumbY = meta.thumbMaskBox?.y ?? meta.fields.thumb?.y;
+      if (_thumbY != null) {
+        let _bestDelta = 0, _bestDist = Infinity;
+        for (const [_fKey, _dynY] of Object.entries(dyn.positions)) {
+          const _fDef = meta.fields[_fKey];
+          if (!_fDef) continue;
+          const _dist = Math.abs(_fDef.y - _thumbY);
+          if (_dist < _bestDist) { _bestDist = _dist; _bestDelta = _dynY - _fDef.y; }
+        }
+        _thumbOffsetY = _bestDelta;
+      }
+    }
+    drawThumbMasked(c, W, H, meta, _thumbOffsetY);
   }
 
   // Desenha assets "attached" ao bloco (estrelas, créditos, etc. dentro do blocoTX/blocoGlass)
