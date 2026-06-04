@@ -495,6 +495,9 @@ header {
 }
 .tool-btn.active { background: var(--epic-red); color: var(--epic-white); border-color: var(--epic-red); }
 .tool-btn svg { width: 18px; height: 18px; }
+/* Variante compacta — 40% menor em altura (pra ferramentas secundárias como thumb) */
+.tool-btn-sm { padding: 5px 6px; gap: 2px; font-size: 8px; }
+.tool-btn-sm svg { width: 12px; height: 12px; }
 
 /* ── Sliders ── */
 .slider-row { display: flex; align-items: center; gap: 8px; }
@@ -969,11 +972,11 @@ canvas { display: block; width: 100%; height: auto; }
     <div style="display:flex;gap:8px">
       <button onclick="fecharModalSalvar()" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
       <button id="btnCopiarImg" onclick="copiarParaClipboard()" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit" title="Copiar imagem para a área de transferência">📋 Copiar</button>
-      <button id="btnBaixarFmt" onclick="confirmarDownload()" style="flex:2;padding:9px;border-radius:8px;border:none;background:var(--epic-red);color:#fff;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:inherit">⬇ Baixar PNG</button>
+      <button id="btnBaixarFmt" onclick="confirmarDownload()" style="flex:2;padding:9px;border-radius:8px;border:none;background:var(--epic-red);color:#fff;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:inherit">💾 Salvar PNG</button>
     </div>
     <!-- Botão "Baixar todos" — visível apenas quando há checkboxes de set -->
     <div id="modalSalvarBtnTodos" style="display:none;margin-top:8px">
-      <button onclick="confirmarDownloadSetFromModal()" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-secondary);color:var(--text-secondary);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px">⬇ Baixar selecionados (ZIP)</button>
+      <button onclick="confirmarDownloadSetFromModal()" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-secondary);color:var(--text-secondary);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px">💾 Salvar selecionados (ZIP)</button>
     </div>
   </div>
 </div>
@@ -992,13 +995,13 @@ canvas { display: block; width: 100%; height: auto; }
 <!-- Modal seleção de formatos para download do set -->
 <div id="modalDownloadSet" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center" onclick="if(event.target===this)document.getElementById('modalDownloadSet').style.display='none'">
   <div style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:14px;padding:24px;width:300px;max-width:90vw;box-shadow:0 24px 64px rgba(0,0,0,0.28);font-family:inherit">
-    <p style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:14px">Escolher formatos para baixar</p>
+    <p style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:14px">Escolher formatos para salvar</p>
     <div id="modalDownloadSetList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px"></div>
     <div style="display:flex;gap:8px">
       <button onclick="document.getElementById('modalDownloadSet').style.display='none'"
         style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--border-color);background:transparent;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Cancelar</button>
       <button onclick="confirmarDownloadSet()"
-        style="flex:2;padding:9px;border-radius:8px;border:none;background:var(--epic-red);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⬇ Baixar</button>
+        style="flex:2;padding:9px;border-radius:8px;border:none;background:var(--epic-red);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">💾 Salvar</button>
     </div>
   </div>
 </div>
@@ -1230,7 +1233,25 @@ canvas { display: block; width: 100%; height: auto; }
           <div class="drop-name" id="thumbDropName"></div>
         </label>
       </div>
-      <button type="button" class="tool-btn" id="btnClearThumb" style="display:none;width:100%;margin-top:6px;color:#b99;font-size:10px">✕ Limpar (voltar pro original)</button>
+      <!-- Ferramentas do thumb (visível só após upload) -->
+      <div id="thumbTools" style="display:none;margin-top:10px">
+        <div class="tools-row">
+          <button type="button" class="tool-btn tool-btn-sm" id="btnDragThumb" onclick="setDragModeThumb(!dragModeThumb)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+              <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/>
+            </svg>
+            Arrastar
+          </button>
+          <button type="button" class="tool-btn tool-btn-sm" id="btnResetThumb" onclick="_resetThumbPos()">↺ Resetar</button>
+        </div>
+        <p class="step-label" style="margin-top:10px;margin-bottom:6px;color:var(--text-muted);font-size:9px">Escala do thumb</p>
+        <div class="slider-row">
+          <input type="range" id="thumbScaleSlider" min="40" max="300" value="100" step="5" oninput="_setThumbScale(+this.value)">
+          <span class="slider-val" id="thumbScaleVal">100%</span>
+        </div>
+      </div>
+      <button type="button" class="tool-btn" id="btnClearThumb" style="display:none;width:100%;margin-top:10px;color:#b99;font-size:10px">✕ Limpar (voltar pro original)</button>
     </div>
 
     <!-- FOTO -->
@@ -1321,7 +1342,7 @@ canvas { display: block; width: 100%; height: auto; }
 
     <!-- EXPORTAR -->
     <div class="panel-section">
-      <button class="btn-render" id="btnRender">Baixar</button>
+      <button class="btn-render" id="btnRender">Salvar</button>
       <p class="status" id="status">Selecione um layout para começar.</p>
     </div>
 
@@ -1389,7 +1410,7 @@ canvas { display: block; width: 100%; height: auto; }
         <div class="ld-pct" id="ldPct">0%</div>
       </div>
     </div>
-    <p class="canvas-info" id="canvasInfo">—</p>
+    <p class="canvas-info" id="canvasInfo" style="display:none">—</p>
   </div>
 
 </div>
@@ -1420,7 +1441,7 @@ canvas { display: block; width: 100%; height: auto; }
       <span>Ferramentas</span>
     </button>
   </div>
-  <button class="btn-render mob-baixar" onclick="abrirModalSalvar()">Baixar</button>
+  <button class="btn-render mob-baixar" onclick="abrirModalSalvar()">Salvar</button>
 </div>
 
 <!-- Overlay para fechar o sheet ao tocar fora -->
@@ -1533,9 +1554,10 @@ function selectLayoutDebounced(id) {
 
 const foto = { img: null, ox: 0, oy: 0, scale: 1, flipH: false };
 // Thumb (avatar circular do autor) — sem ajustes manuais, só upload
-const thumb = { img: null, isTransparent: false };
+const thumb = { img: null, isTransparent: false, ox: 0, oy: 0, scale: 1 };
 let isDragging = false, dragStartX, dragStartY, dragStartOx, dragStartOy;
 let dragMode   = false;
+let _dragTarget = 'foto'; // 'foto' | 'thumb' — definido no mousedown conforme a região clicada
 
 // S1 — rastreia se o operador fez edições não exportadas
 let _isDirty = false;
@@ -1922,13 +1944,15 @@ async function inicializarFigma() {
       return;
     }
 
-    sel.innerHTML = nomes.length > 1 ? '<option value="">Selecione um cliente...</option>' : '';
+    // Sem placeholder — já seleciona o primeiro cliente por padrão
+    sel.innerHTML = '';
     for (const n of nomes) {
       const o = document.createElement('option');
       o.value = n; o.textContent = n;
       sel.appendChild(o);
     }
-    if (nomes.length === 1) { sel.value = nomes[0]; await onClienteChange(); }
+    sel.value = nomes[0];
+    await onClienteChange();
     _syncClienteMobOptions(); // sincronizar select mobile
     setTokenStatus('Conectado ✓', 'ok');
   } catch(e) {
@@ -3366,6 +3390,14 @@ function buildFieldUI(meta) {
   // Reset thumb (uploads não persistem entre layouts, igual à foto principal)
   thumb.img = null;
   thumb.isTransparent = false;
+  thumb.ox = 0; thumb.oy = 0; thumb.scale = 1;
+  const _ts = document.getElementById('thumbScaleSlider');
+  if (_ts) _ts.value = 100;
+  const _tsv = document.getElementById('thumbScaleVal');
+  if (_tsv) _tsv.textContent = '100%';
+  setDragModeThumb(false);
+  const _thumbTools = document.getElementById('thumbTools');
+  if (_thumbTools) _thumbTools.style.display = 'none';
   const _btnClearThumb = document.getElementById('btnClearThumb');
   if (_btnClearThumb) _btnClearThumb.style.display = 'none';
   const _thumbInput = document.getElementById('thumbInput');
@@ -3829,11 +3861,18 @@ function handleThumbFile(file) {
   i.onload = () => {
     thumb.img = i;
     thumb.isTransparent = detectaAlpha(i);
+    // Reset ajustes ao subir nova imagem (começa centralizada, scale 1)
+    thumb.ox = 0; thumb.oy = 0; thumb.scale = 1;
     const _btn = document.getElementById('btnClearThumb');
     if (_btn) _btn.style.display = '';
+    const _slider = document.getElementById('thumbScaleSlider');
+    if (_slider) _slider.value = 100;
+    const _lbl = document.getElementById('thumbScaleVal');
+    if (_lbl) _lbl.textContent = '100%';
+    _updateThumbToolsVisibility();
     _isDirty = true;
     draw();
-    setStatus('Thumb carregado.', 'ok');
+    setStatus('Thumb carregado. Use ARRASTAR pra ajustar posição.', 'ok');
   };
   i.onerror = () => setStatus('Erro ao ler imagem do thumb.', 'err');
   i.src = URL.createObjectURL(file);
@@ -3849,9 +3888,15 @@ document.getElementById('thumbInput')?.addEventListener('change', e => {
 document.getElementById('btnClearThumb')?.addEventListener('click', () => {
   thumb.img = null;
   thumb.isTransparent = false;
+  thumb.ox = 0; thumb.oy = 0; thumb.scale = 1;
   document.getElementById('btnClearThumb').style.display = 'none';
   document.getElementById('thumbDropName').textContent = '';
   document.getElementById('thumbInput').value = '';
+  const _slider = document.getElementById('thumbScaleSlider');
+  if (_slider) _slider.value = 100;
+  const _lbl = document.getElementById('thumbScaleVal');
+  if (_lbl) _lbl.textContent = '100%';
+  _updateThumbToolsVisibility();
   draw();
   setStatus('Thumb removido — voltou pro original do Figma.', 'ok');
 });
@@ -3926,16 +3971,57 @@ document.getElementById('btnBgRemove').addEventListener('click', async () => {
 
 // FERRAMENTAS DE IMAGEM
 // ══════════════════════════════════════════════════════════
+let dragModeThumb = false; // arrastar thumb (avatar) — mutuamente exclusivo com dragMode (foto)
+
 function setDragMode(on) {
   dragMode = on;
+  if (on) setDragModeThumb(false); // mutuamente exclusivo
   document.getElementById('btnDrag').classList.toggle('active', on);
-  // Sincroniza botão espelho na mob-zoom-bar
   const mobBtnDrag = document.getElementById('mobBtnDrag');
   if (mobBtnDrag) mobBtnDrag.classList.toggle('active', on);
   const wrap = document.getElementById('canvasWrap');
-  wrap.className = 'canvas-wrap' + (on ? ' mode-drag' : '');
+  wrap.className = 'canvas-wrap' + (on || dragModeThumb ? ' mode-drag' : '');
   document.getElementById('modeDot').className = 'mode-dot' + (on ? ' drag' : '');
-  document.getElementById('modeLabel').textContent = on ? 'Arraste a imagem' : foto.img ? 'Foto carregada' : '';
+  document.getElementById('modeLabel').textContent = on ? 'Arraste a foto' : foto.img ? 'Foto carregada' : '';
+}
+
+function setDragModeThumb(on) {
+  dragModeThumb = on;
+  if (on) {
+    // mutuamente exclusivo: ativa thumb → desliga foto sem chamar setDragMode (evita loop)
+    dragMode = false;
+    document.getElementById('btnDrag')?.classList.remove('active');
+    document.getElementById('mobBtnDrag')?.classList.remove('active');
+  }
+  document.getElementById('btnDragThumb')?.classList.toggle('active', on);
+  const wrap = document.getElementById('canvasWrap');
+  wrap.className = 'canvas-wrap' + (on || dragMode ? ' mode-drag' : '');
+  document.getElementById('modeLabel').textContent = on ? 'Arraste o thumb' : (foto.img ? 'Foto carregada' : '');
+}
+
+function _setThumbScale(v) {
+  thumb.scale = (+v || 100) / 100;
+  const lbl = document.getElementById('thumbScaleVal');
+  if (lbl) lbl.textContent = v + '%';
+  if (thumb.img && activeLayoutMeta) draw();
+}
+
+function _resetThumbPos() {
+  thumb.ox = 0; thumb.oy = 0; thumb.scale = 1;
+  const slider = document.getElementById('thumbScaleSlider');
+  if (slider) slider.value = 100;
+  const lbl = document.getElementById('thumbScaleVal');
+  if (lbl) lbl.textContent = '100%';
+  if (activeLayoutMeta) draw();
+  setStatus('Posição do thumb resetada.', 'ok');
+}
+
+// Mostra/esconde as ferramentas do thumb conforme há upload do operador
+function _updateThumbToolsVisibility() {
+  const tools = document.getElementById('thumbTools');
+  if (!tools) return;
+  tools.style.display = thumb.img ? '' : 'none';
+  if (!thumb.img) setDragModeThumb(false); // desliga drag se thumb for limpo
 }
 // Sincroniza estado visual dos botões flip (desktop + mob-zoom-bar)
 function _syncFlipBtn(state) {
@@ -4156,6 +4242,7 @@ function _projectGather(name) {
 
   const thumbData = thumb.img ? {
     dataURL: _imgToDataURL(thumb.img, { maxW: 800, mime: 'image/png', quality: 1 }),
+    ox: thumb.ox || 0, oy: thumb.oy || 0, scale: thumb.scale || 1,
   } : null;
 
   return {
@@ -4277,10 +4364,21 @@ async function _projectApply(proj) {
     try {
       const img = await _dataURLToImg(proj.thumb.dataURL);
       thumb.img = img;
+      thumb.ox = proj.thumb.ox || 0;
+      thumb.oy = proj.thumb.oy || 0;
+      thumb.scale = proj.thumb.scale || 1;
+      const _slider = document.getElementById('thumbScaleSlider');
+      if (_slider) _slider.value = Math.round(thumb.scale * 100);
+      const _lbl = document.getElementById('thumbScaleVal');
+      if (_lbl) _lbl.textContent = Math.round(thumb.scale * 100) + '%';
+      const _btnClear = document.getElementById('btnClearThumb');
+      if (_btnClear) _btnClear.style.display = '';
     } catch(e) { console.warn('thumb load fail', e); }
   } else {
     thumb.img = null;
+    thumb.ox = 0; thumb.oy = 0; thumb.scale = 1;
   }
+  _updateThumbToolsVisibility?.();
 
   // Re-render
   _wrapCache?.clear?.();
@@ -4731,17 +4829,35 @@ function _zoomMostrar() {
 }
 
 const wrap = document.getElementById('canvasWrap');
+
+// Helper: modo explícito decide o alvo do drag.
+// dragModeThumb ativo → thumb (independente da posição do clique)
+// dragMode ativo → foto
+function _dragHitTarget() {
+  if (dragModeThumb && thumb.img) return 'thumb';
+  if (dragMode && foto.img) return 'foto';
+  return null;
+}
+
 wrap.addEventListener('mousedown', e => {
-  if (!dragMode || !foto.img) return; e.preventDefault();
-  const p = canvasXY(e); isDragging = true;
-  dragStartX = p.x; dragStartY = p.y; dragStartOx = foto.ox; dragStartOy = foto.oy;
+  const target = _dragHitTarget();
+  if (!target) return;
+  e.preventDefault();
+  const p = canvasXY(e);
+  _dragTarget = target;
+  isDragging = true;
+  dragStartX = p.x; dragStartY = p.y;
+  if (_dragTarget === 'thumb') { dragStartOx = thumb.ox; dragStartOy = thumb.oy; }
+  else                         { dragStartOx = foto.ox;  dragStartOy = foto.oy;  }
 });
 window.addEventListener('mousemove', e => {
   if (!isDragging) return;
   const p = canvasXY(e);
-  foto.ox = dragStartOx + (p.x - dragStartX);
-  foto.oy = dragStartOy + (p.y - dragStartY);
-  syncOffsets(); draw();
+  const tgt = (_dragTarget === 'thumb') ? thumb : foto;
+  tgt.ox = dragStartOx + (p.x - dragStartX);
+  tgt.oy = dragStartOy + (p.y - dragStartY);
+  if (_dragTarget === 'foto') syncOffsets();
+  draw();
 });
 window.addEventListener('mouseup', () => { isDragging = false; });
 wrap.addEventListener('touchstart', e => {
@@ -4752,9 +4868,15 @@ wrap.addEventListener('touchstart', e => {
     _pinchZoom0  = _zoomLevel ?? _zoomEfetivo();
     e.preventDefault(); return;
   }
-  if (!dragMode || !foto.img) return; e.preventDefault();
-  const p = canvasXY(e.touches[0]); isDragging = true;
-  dragStartX = p.x; dragStartY = p.y; dragStartOx = foto.ox; dragStartOy = foto.oy;
+  const target = _dragHitTarget();
+  if (!target) return;
+  e.preventDefault();
+  const p = canvasXY(e.touches[0]);
+  _dragTarget = target;
+  isDragging = true;
+  dragStartX = p.x; dragStartY = p.y;
+  if (_dragTarget === 'thumb') { dragStartOx = thumb.ox; dragStartOy = thumb.oy; }
+  else                         { dragStartOx = foto.ox;  dragStartOy = foto.oy;  }
 }, { passive: false });
 window.addEventListener('touchmove', e => {
   if (e.touches.length === 2 && _pinchDist0 !== null) {
@@ -4766,9 +4888,11 @@ window.addEventListener('touchmove', e => {
   }
   if (!isDragging) return; e.preventDefault();
   const p = canvasXY(e.touches[0]);
-  foto.ox = dragStartOx + (p.x - dragStartX);
-  foto.oy = dragStartOy + (p.y - dragStartY);
-  syncOffsets(); draw();
+  const tgt = (_dragTarget === 'thumb') ? thumb : foto;
+  tgt.ox = dragStartOx + (p.x - dragStartX);
+  tgt.oy = dragStartOy + (p.y - dragStartY);
+  if (_dragTarget === 'foto') syncOffsets();
+  draw();
 }, { passive: false });
 window.addEventListener('touchend', e => {
   if (e.touches.length < 2) _pinchDist0 = null; // S11 — fim do pinch
@@ -5929,14 +6053,18 @@ function drawThumbMasked(c, W, H, meta, offsetY) {
   if (!src) return;
   const mbox = { x: baseMbox.x, y: baseMbox.y + offsetY, w: baseMbox.w, h: baseMbox.h };
 
-  // Aspect-fill: redimensiona pra cobrir todo o slot, centralizado
+  // Aspect-fill: redimensiona pra cobrir todo o slot, centralizado, com ajuste fino (ox/oy/scale)
   const srcW = src.naturalWidth || src.width;
   const srcH = src.naturalHeight || src.height;
-  const scale = Math.max(mbox.w / srcW, mbox.h / srcH);
+  const userScale = thumb.scale || 1;
+  const scale = Math.max(mbox.w / srcW, mbox.h / srcH) * userScale;
   const dw = srcW * scale;
   const dh = srcH * scale;
-  const dx = mbox.x + (mbox.w - dw) / 2;
-  const dy = mbox.y + (mbox.h - dh) / 2;
+  // ox/oy só se aplicam quando há upload do operador (não move o placeholder Figma)
+  const ox = thumb.img ? (thumb.ox || 0) : 0;
+  const oy = thumb.img ? (thumb.oy || 0) : 0;
+  const dx = mbox.x + (mbox.w - dw) / 2 + ox;
+  const dy = mbox.y + (mbox.h - dh) / 2 + oy;
 
   // Canvas offscreen pro destination-in (preserva o resto do canvas principal)
   const pc = document.createElement('canvas');
@@ -6984,27 +7112,71 @@ function _nomeComExtensao(fmt) {
   return semExt + '.' + fmt;
 }
 
-function confirmarDownload() {
+async function confirmarDownload() {
   fecharModalSalvar();
   setStatus('Renderizando...', 'busy');
   document.getElementById('btnRender').disabled = true;
-  setTimeout(() => {
-    // Exportação sempre em alta qualidade independente do dispositivo
-    ctx.imageSmoothingQuality = 'high';
-    draw();
-    const fmt    = exportFormato;
-    const mime   = fmt === 'jpg' ? 'image/jpeg' : 'image/png';
-    const qual   = fmt === 'jpg' ? 0.92 : undefined;
-    const nomeArq = _nomeComExtensao(fmt);
-    const a = document.createElement('a');
-    a.href = canvas.toDataURL(mime, qual);
-    a.download = nomeArq;
-    a.click();
-    _isDirty = false; // S1 — exportado com sucesso
-    _histSalvar();   // C2 — salva conjunto de textos no histórico
-    setStatus(`${fmt.toUpperCase()} salvo: ${nomeArq}`, 'ok');
+  // Pequeno delay pra UI mostrar 'Renderizando' antes do canvas pesado
+  await new Promise(r => setTimeout(r, 60));
+  // Exportação sempre em alta qualidade independente do dispositivo
+  ctx.imageSmoothingQuality = 'high';
+  draw();
+  const fmt    = exportFormato;
+  const mime   = fmt === 'jpg' ? 'image/jpeg' : 'image/png';
+  const qual   = fmt === 'jpg' ? 0.92 : undefined;
+  const nomeArq = _nomeComExtensao(fmt);
+
+  // Gera o blob a partir do canvas
+  const blob = await new Promise(res => canvas.toBlob(res, mime, qual));
+  if (!blob) {
+    setStatus('Erro ao gerar imagem.', 'err');
     document.getElementById('btnRender').disabled = false;
-  }, 60);
+    return;
+  }
+
+  // showSaveFilePicker disponível (Chrome/Edge desktop) → permite escolher pasta/nome
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: nomeArq,
+        types: [{
+          description: fmt === 'jpg' ? 'JPEG Image' : 'PNG Image',
+          accept: { [mime]: [fmt === 'jpg' ? '.jpg' : '.png'] },
+        }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      _isDirty = false;
+      _histSalvar();
+      setStatus(`${fmt.toUpperCase()} salvo: ${handle.name}`, 'ok');
+    } catch (e) {
+      // User cancelou ou navegador bloqueou — não trata como erro
+      if (e?.name !== 'AbortError') {
+        console.warn('showSaveFilePicker fail, fallback to anchor:', e);
+        _downloadBlobFallback(blob, nomeArq);
+        _isDirty = false; _histSalvar();
+        setStatus(`${fmt.toUpperCase()} salvo: ${nomeArq}`, 'ok');
+      } else {
+        setStatus('Salvamento cancelado.', 'ok');
+      }
+    }
+  } else {
+    // Fallback (Firefox, Safari, mobile): download direto pra pasta padrão
+    _downloadBlobFallback(blob, nomeArq);
+    _isDirty = false; _histSalvar();
+    setStatus(`${fmt.toUpperCase()} salvo: ${nomeArq}`, 'ok');
+  }
+  document.getElementById('btnRender').disabled = false;
+}
+
+// Fallback de download via <a download> — usado quando showSaveFilePicker indisponível ou falha
+function _downloadBlobFallback(blob, nome) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nome;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
 }
 
 // Abre modal com checkboxes para escolher quais formatos do set baixar
