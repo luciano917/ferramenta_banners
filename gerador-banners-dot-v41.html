@@ -1823,17 +1823,27 @@ function dbg(msg) {
   try { fetch('/log', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({msg: `[${t}] ${msg}`}) }).catch(()=>{}); } catch(e) {}
 }
 
-async function figmaGet(path) {
+async function figmaGet(path, opts = {}) {
   const token = getFigmaToken();
   if (!token) throw new Error('no_token');
   const sep = path.includes('?') ? '&' : '?';
   const base = IS_LOCAL ? '/figma-api' : 'https://api.figma.com/v1';
   const url  = `${base}${path}${sep}_cb=${Date.now()}`;
-  dbg('GET ' + path.split('?')[0].substring(0, 50));
+  const _retry = opts._retry || 0; // contagem interna de retries
+  dbg('GET ' + path.split('?')[0].substring(0, 50) + (_retry ? ` (retry ${_retry})` : ''));
   const res = await fetch(url, {
     headers: { 'X-Figma-Token': token },
     cache: 'no-store'
   });
+  if (res.status === 429 && _retry < 3) {
+    // Rate limit do Figma — respeita Retry-After se vier no header, senão fallback exponencial.
+    // SEM cache de dados — apenas espera e tenta de novo. Próxima tentativa pega versão fresca do Figma.
+    const headerWait = parseInt(res.headers.get('Retry-After') || '0', 10);
+    const waitMs = headerWait > 0 ? headerWait * 1000 : (1500 * Math.pow(2, _retry)); // 1.5s, 3s, 6s
+    dbg(`429 rate-limit, aguardando ${waitMs}ms antes de retry ${_retry + 1}`);
+    await new Promise(r => setTimeout(r, waitMs));
+    return figmaGet(path, { ...opts, _retry: _retry + 1 });
+  }
   if (!res.ok) { dbg('erro ' + res.status); throw new Error(`figma_${res.status}`); }
   return res.json();
 }
@@ -1863,6 +1873,7 @@ function resetFigmaToken() {
   // Limpa caches de imagem e URLs ao trocar de token (novo arquivo Figma pode ter novos assets)
   _imgCache.clear();
   _layerUrlCache.clear();
+  _scanCache.clear();
   document.getElementById('tokenArea').style.display = '';
   document.getElementById('galleryGrid').innerHTML = '';
   document.getElementById('layoutStrip').innerHTML = '<p style="color:var(--muted);font-size:10px;padding:8px 0">Conecte ao Figma e selecione um cliente.</p>';
@@ -2596,6 +2607,67 @@ function walkNodes(node, frameX, frameY, meta) {
     meta.rodapePos = { x, y: y + h / 2, fontSize, color: '#fdfdfd', ls: Math.round(fontSize * 0.5) };
   }
 
+  // ── PILL automática: FRAME com cornerRadius > 0 que contém 1+ field:* text como filhos diretos.
+  // Detecta padrões como "18 DAYS" (single field) ou "$40K/year + descrição" (multi field).
+  // A pill redimensiona dinamicamente conforme o texto cresce/encolhe.
+  // Quando há múltiplos fields cobertos: o pill é registrado no field do TOPO (primary) e
+  // sua altura soma o crescimento de TODOS os fields cobertos. coveredFields lista todos as keys.
+  // Pula tipos já tratados: blocoTag (tem lógica própria), blocoGlass, blocoTX raiz, maskFoto, maskThumb.
+  if (node.type === 'FRAME' && (node.cornerRadius || 0) > 0) {
+    const isAlreadyHandled = name === 'blocoTag' || name === 'blocoGlass'
+      || (/^blocoTX\d*$/i.test(name) && node.id === meta.blocoTX?.nodeId)
+      || /^mask(Foto|Thumb)/i.test(name);
+    if (!isAlreadyHandled) {
+      const directChildren = node.children || [];
+      const fieldTextChildren = directChildren.filter(c => c.type === 'TEXT' && (c.name || '').toLowerCase().startsWith('field:'));
+      if (fieldTextChildren.length >= 1) {
+        // Ordena por Y (topo → baixo) — primary = topmost
+        const sortedFields = fieldTextChildren.slice().sort((a, b) => {
+          return (a.absoluteBoundingBox?.y ?? 0) - (b.absoluteBoundingBox?.y ?? 0);
+        });
+        // Normaliza key de cada field (mesma lógica do parser de field:*)
+        const _normKey = (rawName) => {
+          let k = (rawName.slice(6).toLowerCase().trim());
+          if (k === 'tx') k = 'texto';
+          else {
+            const mTx = /^tx(\d+)$/.exec(k);
+            if (mTx) k = 'texto' + (parseInt(mTx[1], 10) + 1);
+          }
+          const mSuffix1 = /^(titulo|texto|tag|cta|ctatx)1$/.exec(k);
+          if (mSuffix1) k = mSuffix1[1];
+          return k;
+        };
+        const allKeys = sortedFields.map(c => _normKey(c.name));
+        const pillKey = allKeys[0]; // primary = topmost
+
+        const solidFill   = (node.fills   || []).find(f => f.type === 'SOLID' && f.color);
+        const solidStroke = (node.strokes || []).find(s => s.type === 'SOLID' && s.color);
+        if (!meta.fieldPills) meta.fieldPills = {};
+        // Só registra se ainda não há pill pra esse field (primeira detecção vence)
+        if (!meta.fieldPills[pillKey]) {
+          meta.fieldPills[pillKey] = {
+            nodeId: node.id,
+            x, y, w, h,
+            br: node.cornerRadius || 0,
+            coveredFields: allKeys,
+            fillR:   solidFill   ? Math.round(solidFill.color.r   * 255) : 0,
+            fillG:   solidFill   ? Math.round(solidFill.color.g   * 255) : 0,
+            fillB:   solidFill   ? Math.round(solidFill.color.b   * 255) : 0,
+            fillOpacity: solidFill
+              ? Math.round((solidFill.opacity ?? 1) * (solidFill.color.a ?? 1) * 100) / 100 : 0,
+            strokeR: solidStroke ? Math.round(solidStroke.color.r * 255) : 0,
+            strokeG: solidStroke ? Math.round(solidStroke.color.g * 255) : 0,
+            strokeB: solidStroke ? Math.round(solidStroke.color.b * 255) : 0,
+            strokeOpacity: solidStroke
+              ? Math.round((solidStroke.opacity ?? 1) * (solidStroke.color.a ?? 1) * 100) / 100 : 0,
+            strokeW: node.strokeWeight || 1,
+          };
+          dbg(`fieldPill detectado: ${pillKey} (${node.id}) ${w}x${h} br=${node.cornerRadius} stroke=${meta.fieldPills[pillKey].strokeOpacity > 0 ? 'sim' : 'não'} fill=${meta.fieldPills[pillKey].fillOpacity > 0 ? 'sim' : 'não'} covered=[${allKeys.join(',')}]`);
+        }
+      }
+    }
+  }
+
   // Recursão pelos filhos
   if (node.children) {
     for (const child of node.children) walkNodes(child, frameX, frameY, meta);
@@ -2622,6 +2694,7 @@ async function extractLayoutMeta(meta) {
   meta.glassBox       = null;
   meta.blocoTX        = null;
   meta.tagPillFrame   = null;
+  meta.fieldPills     = {};
   meta.rodapePos      = null;
   meta.bgColor        = null;
   meta.fotoMaskNodeId = null;
@@ -3136,12 +3209,27 @@ function mostrarAvisosLayout(meta) {
   box.style.display = 'block';
 }
 
+// Cache de varredura por cliente — evita re-escanear cada vez que troca de cliente na mesma sessão.
+// Limpado ao trocar de FIGMA_FILE_KEY (ver resetFigmaToken e onClienteChange).
+const _scanCache = new Map(); // key: FIGMA_FILE_KEY + pageId → resultado já escaneado
+
 // Varre TODOS os layouts descobertos em background (sem bloquear a UI).
-// Chamada após discoverAndBuildLayouts para cobrir todos os clientes/páginas.
+// Adia 3s para o user-clicked layout ter prioridade total na API.
+// Cacheia por sessão — se o user trocar de cliente e voltar, NÃO re-escana (Figma fresh = re-clicar no layout, que aí sim faz fetch novo).
 async function scanTodosLayouts(layouts) {
+  const cacheKey = FIGMA_FILE_KEY + ':' + (layouts[0]?.id || 'none');
+  if (_scanCache.has(cacheKey)) {
+    dbg(`scanTodosLayouts: cache hit (${cacheKey}) — pulando`);
+    mostrarAvisosGlobal(_scanCache.get(cacheKey));
+    return;
+  }
+  // Atraso inicial: dá prioridade ao layout que o user clicou
+  await new Promise(r => setTimeout(r, 3000));
   const todosAvisos = [];
   for (const layout of layouts) {
     try {
+      // Pequeno gap entre requests pra reduzir pressão no rate limit
+      await new Promise(r => setTimeout(r, 250));
       const data = await figmaGet(`/files/${FIGMA_FILE_KEY}/nodes?ids=${layout.id}&depth=7`);
       const frameNode = data.nodes?.[layout.id]?.document;
       if (!frameNode) continue;
@@ -3160,6 +3248,7 @@ async function scanTodosLayouts(layouts) {
       dbg(`scanTodosLayouts erro em ${layout.label}: ${e.message}`);
     }
   }
+  _scanCache.set(cacheKey, todosAvisos);
   mostrarAvisosGlobal(todosAvisos);
 }
 
@@ -3190,22 +3279,26 @@ async function loadLayoutAssets(meta) {
   const allIds = [...nodeIdSet];
   dbg('exportando ' + allIds.length + ' assets...');
 
-  // Chunking: divide em batches de 5 IDs para evitar timeout do Figma
-  // (alguns layouts com BOOLEAN_OPERATION + grupos pesados travam quando tudo vai junto)
-  const CHUNK_SIZE = 5;
+  // Chunking: divide em batches de 12 IDs (chunk maior = menos requests, ainda seguro pro Figma).
+  // Chunks rodam EM PARALELO (Promise.allSettled) — antes eram sequenciais com await por chunk.
+  // figmaGet já lida com 429 internamente (backoff + retry), então paralelo não causa cascata de falhas.
+  const CHUNK_SIZE = 12;
   const imgMap = {};
+  const _chunkPromises = [];
   for (let _i = 0; _i < allIds.length; _i += CHUNK_SIZE) {
     const _chunk = allIds.slice(_i, _i + CHUNK_SIZE);
     const _idsStr = _chunk.join(',');
-    try {
-      const _data = await figmaGet(`/images/${FIGMA_FILE_KEY}?ids=${encodeURIComponent(_idsStr)}&format=png&scale=2`);
-      Object.assign(imgMap, _data.images || {});
-      dbg(`assets chunk ${Math.floor(_i/CHUNK_SIZE)+1}/${Math.ceil(allIds.length/CHUNK_SIZE)} ok (${_chunk.length} ids)`);
-    } catch (e) {
-      dbg(`assets chunk ${Math.floor(_i/CHUNK_SIZE)+1} FALHOU (${_chunk.length} ids): ${e.message}`);
-      // Continua com os próximos chunks — não perde tudo se um falhar
-    }
+    const _chunkIdx = Math.floor(_i/CHUNK_SIZE) + 1;
+    _chunkPromises.push(
+      figmaGet(`/images/${FIGMA_FILE_KEY}?ids=${encodeURIComponent(_idsStr)}&format=png&scale=2`)
+        .then(_data => {
+          Object.assign(imgMap, _data.images || {});
+          dbg(`assets chunk ${_chunkIdx}/${Math.ceil(allIds.length/CHUNK_SIZE)} ok (${_chunk.length} ids)`);
+        })
+        .catch(e => { dbg(`assets chunk ${_chunkIdx} FALHOU (${_chunk.length} ids): ${e.message}`); })
+    );
   }
+  await Promise.all(_chunkPromises);
 
   const assets = {};
   // P2 — carrega todos os assets em paralelo (antes era loop sequencial com await)
@@ -4298,26 +4391,58 @@ async function _projectLoad(id) {
   const proj = await _idbGet(id);
   if (!proj) { setStatus('Projeto não encontrado.', 'err'); return; }
 
-  // 1) Cliente: se diferente, troca e espera os layouts carregarem
+  setStatus(`Abrindo "${proj.name}"…`, 'busy');
+
+  // Bypass do modal de dirty durante load programático (usuário já confirmou ao clicar Abrir).
+  _isDirty = false;
+
+  // 1) Cliente: se diferente, troca e espera os layouts ficarem disponíveis no DOM
   const clienteSel = document.getElementById('clienteSelect');
   if (clienteSel && proj.clientName && clienteSel.value !== proj.clientName) {
+    // Verifica se o cliente existe no dropdown (pode ter mudado nome/sumido)
+    const exists = Array.from(clienteSel.options).some(o => o.value === proj.clientName);
+    if (!exists) {
+      setStatus(`Cliente "${proj.clientName}" não encontrado.`, 'err');
+      return;
+    }
     clienteSel.value = proj.clientName;
     if (typeof onClienteChange === 'function') await onClienteChange();
   }
 
-  // 2) Layout: aguarda discoverAndBuildLayouts terminar e seleciona
-  await new Promise(r => setTimeout(r, 200));
+  // 2) Aguarda os cards de layout estarem no DOM (até 10s)
+  const _waitForLayoutCard = async () => {
+    const start = Date.now();
+    while (Date.now() - start < 10000) {
+      const cards = document.querySelectorAll('.layout-card');
+      const found = Array.from(cards).find(c => c.dataset?.id === proj.layoutId);
+      if (found) return found;
+      await new Promise(r => setTimeout(r, 100));
+    }
+    return null;
+  };
+  const targetCard = proj.layoutId ? await _waitForLayoutCard() : null;
+  if (proj.layoutId && !targetCard) {
+    setStatus(`Layout "${proj.layoutLabel || proj.layoutId}" não disponível no cliente atual.`, 'err');
+    return;
+  }
+
+  // 3) Seleciona o layout (programático — sem modal de dirty).
+  // selectLayout é async e aguarda extractLayoutMeta + loadLayoutAssets + loadLayerImages internamente.
   if (proj.layoutId && typeof selectLayout === 'function') {
-    selectLayout(proj.layoutId);
+    _isDirty = false;
+    // Cancela qualquer selectLayoutDebounced pendente (evita race com clique anterior)
+    clearTimeout(_layoutSelectTimer);
+    await selectLayout(proj.layoutId);
   }
 
-  // 3) Espera o layout terminar de carregar (poll _isLoadingLayout)
-  const startedAt = Date.now();
-  while (_isLoadingLayout && (Date.now() - startedAt) < 30000) {
-    await new Promise(r => setTimeout(r, 100));
+  // 4) Pequeno tick pra _isLoadingLayout virar false e UI atualizar
+  await new Promise(r => setTimeout(r, 100));
+  if (activeLayoutMeta?.id !== proj.layoutId) {
+    setStatus(`Falhou carregando "${proj.layoutLabel || proj.layoutId}". Tente de novo.`, 'err');
+    return;
   }
 
-  // 4) Aplica textos, overrides, visibility, foto, thumb
+  // 5) Aplica textos, overrides, visibility, foto, thumb
   await _projectApply(proj);
 
   _currentProjectId = proj.id;
@@ -5363,20 +5488,27 @@ async function loadLayerImages(meta, loadToken) {
       imgMap = _layerUrlCache.get(meta.id);
       dbg('layerUrlCache HIT: ' + meta.id);
     } else {
-      // Chunking: divide em batches de 5 IDs (evita timeout do Figma com layouts pesados)
-      const CHUNK_SIZE = 5;
+      // Chunking: batches de 12 IDs em PARALELO (figmaGet trata 429 com backoff+retry).
+      // Reduz latência total de loading sem cachear dados antigos.
+      const CHUNK_SIZE = 12;
       imgMap = {};
+      const _chunkPromises = [];
+      const _totalChunks = Math.ceil(idsArr.length / CHUNK_SIZE);
       for (let _i = 0; _i < idsArr.length; _i += CHUNK_SIZE) {
         const _chunk = idsArr.slice(_i, _i + CHUNK_SIZE);
-        try {
-          const _data = await figmaGet(`/images/${FIGMA_FILE_KEY}?ids=${encodeURIComponent(_chunk.join(','))}&format=png&scale=1`);
-          if (_obsoleto()) return; // N1 — outro layout selecionado durante chunking
-          Object.assign(imgMap, _data.images || {});
-          dbg(`layerImages chunk ${Math.floor(_i/CHUNK_SIZE)+1}/${Math.ceil(idsArr.length/CHUNK_SIZE)} ok (${_chunk.length} ids)`);
-        } catch (e) {
-          dbg(`layerImages chunk ${Math.floor(_i/CHUNK_SIZE)+1} FALHOU: ${e.message}`);
-        }
+        const _chunkIdx = Math.floor(_i/CHUNK_SIZE) + 1;
+        _chunkPromises.push(
+          figmaGet(`/images/${FIGMA_FILE_KEY}?ids=${encodeURIComponent(_chunk.join(','))}&format=png&scale=1`)
+            .then(_data => {
+              if (_obsoleto()) return;
+              Object.assign(imgMap, _data.images || {});
+              dbg(`layerImages chunk ${_chunkIdx}/${_totalChunks} ok (${_chunk.length} ids)`);
+            })
+            .catch(e => dbg(`layerImages chunk ${_chunkIdx} FALHOU: ${e.message}`))
+        );
       }
+      await Promise.all(_chunkPromises);
+      if (_obsoleto()) return;
       _layerUrlCache.set(meta.id, imgMap);
     }
     if (_obsoleto()) return; // N1 — checagem extra antes de iniciar downloads
@@ -5634,6 +5766,14 @@ function computeDynLayout(c, meta) {
     const fst = field.textStyle?.fontStyle || 'normal';
     const ff  = field.textStyle?.fontFamily ? `'${field.textStyle.fontFamily}',sans-serif` : "'Lato',sans-serif";
     const tx  = field.textBB?.x ?? field.x;
+    // Se o field está dentro de uma fieldPill (frame com borda que cresce), o texto NÃO wrappa —
+    // a pill cresce conforme o texto. Conta linhas só por \n explícitos.
+    const fieldKey = Object.keys(meta.fields).find(k => meta.fields[k] === field);
+    const hasPill = fieldKey && meta.fieldPills?.[fieldKey];
+    if (hasPill) {
+      const explicit = text.split('\n').filter(p => p.trim() !== '').length;
+      return Math.max(explicit, 1);
+    }
     // +3% de tolerância: canvas tende a medir fontes ligeiramente mais largas que o Figma,
     // o que causa quebra de linha espúria (ex: "for your business?" mede 846px > 844px no canvas
     // mas cabe em 1 linha no Figma). A folga evita desconto no posicionamento vertical.
@@ -5698,7 +5838,12 @@ function computeDynLayout(c, meta) {
     if (!val) return 0;
     if (type === 'tag')    return f.h;
     if (type === 'cta')    return f.h; // CTA tem altura fixa (cresce só em largura)
-    // titulo / texto: linhas × lineHeight (fontSize e lineHeight podem ter override do operador)
+    // titulo / texto: altura visual do bloco — replica o que o Figma reporta em absoluteBoundingBox.height.
+    // Fórmula: (linhas - 1) × lineHeight + fontSize × 0.7
+    //   - (linhas-1) × lh: espaço entre as N linhas
+    //   - fontSize × 0.7: altura visual da última linha (cap-height + descender), independente do lineHeight
+    // Antes era `lines * lh`, que somava lineHeight inteiro a mais quando lh > fontSize,
+    // empurrando todo o conteúdo BOTTOM-anchored pra cima e quebrando o espaçamento do Figma.
     const baseFS = f.textStyle?.fontSize || 60;
     const effFS  = _getEffectiveFontSize(key, baseFS);
     const baseLH = f.textStyle?.lineHeightPx
@@ -5706,7 +5851,7 @@ function computeDynLayout(c, meta) {
       : Math.round(effFS * 1.2);
     const lh = _getEffectiveLineHeight(key, baseLH);
     const lines = countLines(val, f, effFS);
-    return lines * lh;
+    return Math.round((lines - 1) * lh + effFS * 0.7);
   }
 
   // --- Deriva padding e gap das posições originais do Figma ---
@@ -5766,7 +5911,7 @@ function computeDynLayout(c, meta) {
     const tLines = titleEntry ? countLines(_valueOf('titulo'), titleEntry.f) : 1;
 
     dbg(`computeDynLayout CENTER: blockCenterY=${blockCenterY} totalH=${totalH} glassY=${newGlassY} glassH=${newGlassH} pos=${JSON.stringify(positions)}`);
-    return { glassY: newGlassY, glassH: newGlassH, positions, titleLines: tLines };
+    return { glassY: newGlassY, glassH: newGlassH, positions, heights: _heights, titleLines: tLines };
 
   } else if (effectiveConstraintV === 'BOTTOM') {
     // Empilha bottom-up (fim para o início)
@@ -5802,7 +5947,7 @@ function computeDynLayout(c, meta) {
     const tLines = titleEntry ? countLines(_valueOf('titulo'), titleEntry.f) : 1;
 
     dbg(`computeDynLayout BOTTOM: glassY=${newGlassY} glassH=${newGlassH} gaps=${JSON.stringify(_gapsBetween)} pos=${JSON.stringify(positions)}`);
-    return { glassY: newGlassY, glassH: newGlassH, positions, titleLines: tLines };
+    return { glassY: newGlassY, glassH: newGlassH, positions, heights: _heights, titleLines: tLines };
 
   } else {
     // Empilha top-down (início para o fim)
@@ -5823,7 +5968,7 @@ function computeDynLayout(c, meta) {
     const tLines = titleEntry ? countLines(_valueOf('titulo'), titleEntry.f) : 1;
 
     dbg(`computeDynLayout TOP: glassY=${gl.y} glassH=${newGlassH} gaps=${JSON.stringify(_gapsBetween)} pos=${JSON.stringify(positions)}`);
-    return { glassY: gl.y, glassH: newGlassH, positions, titleLines: tLines };
+    return { glassY: gl.y, glassH: newGlassH, positions, heights: _heights, titleLines: tLines };
   }
 }
 
@@ -6085,6 +6230,81 @@ function drawThumbMasked(c, W, H, meta, offsetY) {
     pctx.fillRect(mbox.x, mbox.y, mbox.w, mbox.h);
   }
   c.drawImage(pc, 0, 0);
+}
+
+// Desenha a pill (frame com borda/fill arredondado) em volta de 1+ fields de texto.
+// A pill redimensiona dinamicamente:
+//   - largura: segue a linha mais larga entre todos os covered fields
+//   - altura:  soma o crescimento (linhas extras × lineHeight) de TODOS os covered fields
+// Acompanha o reflow vertical do field primário (mesmo delta).
+function _drawFieldPill(c, key, f, val, baseY, nFW, nFS, nFStyle, nFF, meta, nLH) {
+  const pill = meta.fieldPills?.[key];
+  if (!pill) return;
+  if (!val || !val.trim()) return;
+  // Lista de fields cobertos pela mesma pill (single = só o próprio key)
+  const coveredFields = pill.coveredFields || [key];
+  // Acumula extraH (delta de altura pós-reflow) e maxW (linha mais larga) ao longo de todos cobertos
+  let totalExtraH = 0;
+  let maxW = 0;
+  const dyn = meta.dynLayout;
+  c.save();
+  for (const ck of coveredFields) {
+    const cf = meta.fields[ck];
+    if (!cf || !cf.textStyle) continue;
+    const inputId = _getFieldInputId(ck);
+    const cVal = (document.getElementById(inputId)?.value ?? '');
+    if (!cVal.trim()) continue;
+    const cFS    = _getEffectiveFontSize(ck, cf.textStyle.fontSize);
+    const cFW    = cf.textStyle.fontWeight || 400;
+    const cFStyle = cf.textStyle.fontStyle || 'normal';
+    const cFF    = cf.textStyle.fontFamily ? `'${cf.textStyle.fontFamily}',sans-serif` : 'sans-serif';
+    // Delta de altura: prioridade pra dyn.heights (já considera wrap real); fallback conta \n
+    if (dyn?.heights?.[ck] != null) {
+      totalExtraH += Math.max(0, dyn.heights[ck] - cf.h);
+    } else {
+      const cLH    = _getEffectiveLineHeight(ck, cf.textStyle.lineHeightPx || Math.round(cFS * 1.4));
+      const cLines = Math.max(cVal.split('\n').filter(p => p.trim() !== '').length, 1);
+      totalExtraH += (cLines - 1) * cLH;
+    }
+    // Mede largura da linha mais larga do field
+    c.font = `${cFStyle} ${cFW} ${cFS}px ${cFF}`;
+    for (const ln of cVal.split('\n')) {
+      if (!ln.trim()) continue;
+      const w = c.measureText(ln).width;
+      if (w > maxW) maxW = w;
+    }
+  }
+  c.restore();
+  // Padding lateral original do Figma (do primary field — define a "âncora" lateral)
+  const tp = f.textBB || f;
+  const padLeft  = Math.max(0, tp.x - pill.x);
+  const padRight = Math.max(0, (pill.x + pill.w) - (tp.x + (tp.w || f.w)));
+  const dynPillW = Math.max(padLeft + maxW + padRight, padLeft + padRight + 4);
+  // Altura: pill.h original (com todos campos single-line) + crescimento de cada coberto
+  const dynPillH = pill.h + totalExtraH;
+  // Anchor X conforme alinhamento do texto do field primary
+  const align = f.textStyle?.align || 'left';
+  let pillX = pill.x;
+  if (align === 'center')      pillX = pill.x + pill.w/2 - dynPillW/2;
+  else if (align === 'right')  pillX = (pill.x + pill.w) - dynPillW;
+  // Y: acompanha reflow do field primary (mesmo delta)
+  const pillDY = baseY - f.y;
+  const pillY = pill.y + pillDY;
+  // Desenha fill
+  if (pill.fillOpacity > 0) {
+    c.save();
+    c.fillStyle = `rgba(${pill.fillR},${pill.fillG},${pill.fillB},${pill.fillOpacity})`;
+    roundRect(c, pillX, pillY, dynPillW, dynPillH, pill.br);
+    c.fill(); c.restore();
+  }
+  // Desenha stroke
+  if (pill.strokeOpacity > 0) {
+    c.save();
+    c.strokeStyle = `rgba(${pill.strokeR},${pill.strokeG},${pill.strokeB},${pill.strokeOpacity})`;
+    c.lineWidth = pill.strokeW || 1;
+    roundRect(c, pillX, pillY, dynPillW, dynPillH, pill.br);
+    c.stroke(); c.restore();
+  }
 }
 
 function drawFotoMasked(c, W, H, meta) {
@@ -6689,7 +6909,9 @@ function drawEditableText(c, W, H, meta) {
         const nLH    = _getEffectiveLineHeight(key, f.textStyle.lineHeightPx || Math.round(nFS * 1.4));
         const nFF    = f.textStyle.fontFamily  ? `'${f.textStyle.fontFamily}',sans-serif` : 'sans-serif';
         const nX     = f.textBB?.x ?? f.x;
-        const nW     = effectiveTextWidth(f, nX, meta);
+        // Quando há fieldPill, a pill cresce conforme o texto — usar largura ilimitada (single-line forçado)
+        const _hasPill = !!meta.fieldPills?.[key];
+        const nW     = _hasPill ? Number.MAX_SAFE_INTEGER : effectiveTextWidth(f, nX, meta);
         c.textBaseline = 'top';
         c.textAlign = f.textStyle.align || 'left';
         c.letterSpacing = (f.textStyle.letterSpacing || 0) + 'px';
@@ -6698,6 +6920,39 @@ function drawEditableText(c, W, H, meta) {
         const baseY    = dyn?.positions[key] != null ? dyn.positions[key] : f.y;
         const textOffY = (f.textBB?.y ?? f.y) - f.y;
         let nCy = baseY + textOffY;
+
+        // PILL: se há frame com borda em volta deste field, desenha primeiro com largura/altura dinâmicas.
+        // A pill segue o reflow do texto (mesmo deltaY) e cresce em ambas dimensões com o conteúdo.
+        _drawFieldPill(c, key, f, val, baseY, nFW, nFS, nFStyle, nFF, meta, nLH);
+
+        // Quando há pill com SINGLE field coberto, RECENTRA verticalmente o texto usando métricas reais.
+        // Bloco multi-linha (N linhas, lineHeight = lh):
+        //   - Linha 1: glyph_top    = y - ascent (ascent normalmente negativo com baseline='top')
+        //   - Linha N: glyph_bottom = y + (N-1)*lh + descent
+        //   - block_visual_center  = y + ((N-1)*lh + descent - ascent) / 2
+        // Centralizar no pillCenter → y = pillCenter - ((N-1)*lh + descent - ascent) / 2
+        // Multi-field pill: NÃO recentra — deixa o reflow natural posicionar cada field individualmente.
+        if (_hasPill && (meta.fieldPills[key].coveredFields?.length || 1) === 1) {
+          const _pill = meta.fieldPills[key];
+          const _pillDY = baseY - f.y;
+          // Conta linhas (mesma regra do _drawFieldPill) e calcula altura dinâmica do pill
+          const _lines = Math.max(val.split('\n').filter(p => p.trim() !== '').length, 1);
+          const _dynPillH = _pill.h + (_lines - 1) * nLH;
+          const _pillCenterY = (_pill.y + _pillDY) + _dynPillH / 2;
+          c.save();
+          c.font = `${nFStyle} ${nFW} ${nFS}px ${nFF}`;
+          c.textBaseline = 'top';
+          const _metrics = c.measureText(val.split('\n')[0] || val);
+          c.restore();
+          const _ascent  = _metrics.actualBoundingBoxAscent;
+          const _descent = _metrics.actualBoundingBoxDescent;
+          // Fallback se métricas não vierem (raro): usa cap-height ~0.7
+          if (typeof _ascent === 'number' && typeof _descent === 'number') {
+            nCy = _pillCenterY - ((_lines - 1) * nLH + _descent - _ascent) / 2;
+          } else {
+            nCy = _pillCenterY - ((_lines - 1) * nLH + nFS * 0.7) / 2;
+          }
+        }
 
         const inputId = _getFieldInputId(key); // ex: field_titulo2 / field_texto2
         const ranges  = _fieldFormatRanges[inputId] || [];
