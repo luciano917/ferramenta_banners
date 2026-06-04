@@ -1,47 +1,68 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Banner Creator · EPIC Digital</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Barlow:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════════
-   EPIC Digital — Design System
-   Banner Creator v27
+   EPIC Digital — Design Kit (v40)
+   Banner Creator · Light/Dark themes (dark default)
+   Tokens from /Sandbox Claude/ design-kit
    ═══════════════════════════════════════════════════════ */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Brand tokens (fixos) ── */
+/* ── Brand tokens fixos (compartilhados entre temas) ── */
 :root {
   --epic-red:   #FF0050;
-  --epic-black: #000000;
+  --red-dim:    #FFD0DF;
+  --epic-black: #0F0F0F;
   --epic-white: #FFFFFF;
-  --epic-dark:  #0a0a0a;
-  --epic-gray:  #666666;
   --trans: all 0.2s ease;
+
+  /* Famílias tipográficas EPIC */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-serif:   'Instrument Serif', Georgia, serif;
+  --font-body:    'Barlow', 'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* Sombras brutalistas (definidas após --ink em cada tema) */
+  --ease: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* ── Light theme (default) ── */
-:root, [data-theme="light"] {
-  --bg-primary:    #FFFFFF;
-  --bg-secondary:  #F5F5F5;
-  --bg-tertiary:   #EBEBEB;
-  --bg-card:       rgba(0,0,0,0.02);
-  --text-primary:  #000000;
-  --text-secondary:rgba(0,0,0,0.7);
-  --text-muted:    rgba(0,0,0,0.4);
-  --border-color:  rgba(0,0,0,0.1);
-  --glass:         rgba(0,0,0,0.03);
-  --glass-border:  rgba(0,0,0,0.06);
-  --glass-hover:   rgba(0,0,0,0.08);
-  --input-bg:      #F5F5F5;
-  --skel-a:        #EBEBEB;
-  --skel-b:        #F5F5F5;
+/* ── Light theme (paper/ink — EPIC design-kit) ── */
+[data-theme="light"] {
+  /* Tokens EPIC originais */
+  --paper:         #F5F2EA;
+  --paper-2:       #EEE8D8;
+  --paper-3:       #E6E0CE;
+  --ink:           #0F0F0F;
+  --ink-soft:      #2B2B2B;
+  --muted-token:   #8A847A;
+  --rule:          #E8E2D4;
+  /* Mapeamento para variáveis legadas usadas pelo app */
+  --bg-primary:    var(--paper);
+  --bg-secondary:  var(--paper-2);
+  --bg-tertiary:   var(--paper-3);
+  --bg-card:       rgba(15,15,15,0.03);
+  --text-primary:  var(--ink);
+  --text-secondary:var(--ink-soft);
+  --text-muted:    var(--muted-token);
+  --border-color:  var(--rule);
+  --glass:         rgba(15,15,15,0.03);
+  --glass-border:  rgba(15,15,15,0.08);
+  --glass-hover:   rgba(15,15,15,0.06);
+  --input-bg:      var(--paper-2);
+  --skel-a:        var(--paper-3);
+  --skel-b:        var(--paper-2);
   --status-ok:     #0A8F7F;
   --status-err:    #D93636;
-  --canvas-load-bg:rgba(255,255,255,0.88);
-  /* Backwards compat — variáveis antigas mapeadas para o novo sistema */
+  --canvas-load-bg:rgba(245,242,234,0.92);
+  --shadow-brutal: 4px 4px 0 0 var(--ink);
+  --shadow-red:    4px 4px 0 0 var(--epic-red);
   --green: var(--epic-red);
   --bg:    var(--bg-primary);
   --panel: var(--bg-secondary);
@@ -51,25 +72,37 @@
   --muted2:var(--bg-tertiary);
 }
 
-/* ── Dark theme ── */
+/* ── Dark theme (DEFAULT — aplicado via <html data-theme="dark"> no markup) ── */
 [data-theme="dark"] {
-  --bg-primary:    #000000;
-  --bg-secondary:  #0a0a0a;
-  --bg-tertiary:   #111111;
-  --bg-card:       rgba(255,255,255,0.03);
-  --text-primary:  #FFFFFF;
-  --text-secondary:rgba(255,255,255,0.7);
-  --text-muted:    rgba(255,255,255,0.4);
-  --border-color:  rgba(255,255,255,0.08);
-  --glass:         rgba(255,255,255,0.03);
-  --glass-border:  rgba(255,255,255,0.06);
-  --glass-hover:   rgba(255,255,255,0.08);
-  --input-bg:      #111111;
-  --skel-a:        #1a1a1a;
-  --skel-b:        #222222;
+  /* Tokens EPIC invertidos: ink vira base, paper vira tipografia */
+  --paper:         #F5F2EA;
+  --paper-2:       #EEE8D8;
+  --paper-3:       #E6E0CE;
+  --ink:           #0A0A0A;
+  --ink-soft:      #141414;
+  --ink-2:         #1C1C1C;
+  --muted-token:   #8A847A;
+  --rule:          rgba(245,242,234,0.10);
+  /* Mapeamento legado */
+  --bg-primary:    var(--ink);
+  --bg-secondary:  var(--ink-soft);
+  --bg-tertiary:   var(--ink-2);
+  --bg-card:       rgba(245,242,234,0.04);
+  --text-primary:  var(--paper);
+  --text-secondary:var(--paper-2);
+  --text-muted:    var(--muted-token);
+  --border-color:  var(--rule);
+  --glass:         rgba(245,242,234,0.04);
+  --glass-border:  rgba(245,242,234,0.08);
+  --glass-hover:   rgba(245,242,234,0.08);
+  --input-bg:      var(--ink-soft);
+  --skel-a:        var(--ink-2);
+  --skel-b:        var(--ink-soft);
   --status-ok:     #4ECDC4;
   --status-err:    #FF6B6B;
-  --canvas-load-bg:rgba(0,0,0,0.75);
+  --canvas-load-bg:rgba(10,10,10,0.80);
+  --shadow-brutal: 4px 4px 0 0 var(--paper);
+  --shadow-red:    4px 4px 0 0 var(--epic-red);
   --green: var(--epic-red);
   --bg:    var(--bg-primary);
   --panel: var(--bg-secondary);
@@ -81,11 +114,12 @@
 
 /* ── Base ── */
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   background: var(--bg-primary); color: var(--text-primary);
   min-height: 100vh; display: flex; flex-direction: column;
   align-items: stretch; padding: 0 20px 40px; gap: 0;
   transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ── Header ── */
@@ -97,29 +131,35 @@ header {
 }
 .logo-area { display: flex; flex-direction: row; align-items: center; gap: 10px; }
 .logo-area h1 {
-  font-size: 11px; font-weight: 800; letter-spacing: 5px;
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 800; letter-spacing: 2px;
   text-transform: uppercase; color: var(--text-primary);
 }
 .logo-area h1 span { color: var(--epic-red); }
-.logo-area p  { font-size: 9px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+.logo-area p  {
+  font-family: var(--font-mono);
+  font-size: 9px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;
+}
 .header-right { display: flex; align-items: center; gap: 10px; }
 .header-badge {
+  font-family: var(--font-mono);
   font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
   color: var(--text-muted); border: 1px solid var(--border-color);
-  border-radius: 20px; padding: 5px 12px;
+  border-radius: 2px; padding: 5px 12px;
 }
 .theme-toggle {
   width: 32px; height: 32px; background: var(--glass);
-  border: 1px solid var(--glass-border); border-radius: 8px;
+  border: 1px solid var(--glass-border); border-radius: 2px;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   font-size: 14px; transition: var(--trans); color: var(--text-secondary);
   flex-shrink: 0;
 }
-.theme-toggle:hover { background: var(--glass-hover); border-color: var(--epic-red); }
+.theme-toggle:hover { background: var(--glass-hover); border-color: var(--epic-red); color: var(--epic-red); }
 
 /* ── Step labels ── */
 .step-label {
-  font-size: 9px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase;
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase;
   color: var(--epic-red); margin-bottom: 14px;
   display: flex; align-items: center; gap: 10px;
 }
@@ -325,13 +365,14 @@ header {
 .panel-section.hidden { display: none; }
 .field.hidden { display: none; }
 .sec-title {
-  font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase;
   color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
 }
 .sec-title::after { content:''; flex:1; height:1px; background: var(--border-color); }
 .field { display: flex; flex-direction: column; gap: 5px; }
 .field + .field { margin-top: 10px; }
-.field label { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--epic-red); display: flex; align-items: center; gap: 5px; }
+.field label { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--epic-red); display: flex; align-items: center; gap: 5px; }
 .eye-btn { background: none; border: none; padding: 0; cursor: pointer; opacity: 0.55; display: inline-flex; align-items: center; line-height: 1; flex-shrink: 0; transition: opacity .15s; margin-left: auto; color: inherit; font-size: 0; }
 .fs-btns { display: inline-flex; gap: 3px; margin-left: 6px; }
 .fs-btn { background: none; border: 1px solid var(--border-color); border-radius: 5px; padding: 2px 8px; cursor: pointer; color: var(--text-muted); font-size: 12px; font-weight: 700; line-height: 18px; min-width: 28px; min-height: 22px; text-align: center; transition: border-color .15s, color .15s; font-family: inherit; -webkit-tap-highlight-color: transparent; }
@@ -349,21 +390,29 @@ header {
 .eye-btn.hidden { opacity: 0.25; }
 .field input[type=text], .field textarea {
   background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px;
-  padding: 9px 11px; color: var(--text-primary); font-size: 12px; font-family: 'Inter', sans-serif;
+  padding: 9px 11px; color: var(--text-primary); font-size: 12px; font-family: var(--font-body);
   transition: border-color .15s; resize: vertical; line-height: 1.4;
+}
+/* Light theme: cor de borda sutilmente mais forte (não engrossa, só mais visível sobre paper) +
+   fundo branco pra dar contraste/destaque ao campo de texto */
+[data-theme="light"] .field input[type=text],
+[data-theme="light"] .field textarea {
+  border-color: rgba(15, 15, 15, 0.22);
+  background: var(--epic-white);
 }
 .field input[type=text]:focus, .field textarea:focus { outline: none; border-color: var(--epic-red); }
 .field input[type=text]:disabled, .field textarea:disabled { opacity: 0.4; cursor: not-allowed; }
 .hint { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
 
 /* ── Foto tabs ── */
-.foto-tabs { display: flex; margin-bottom: 12px; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
+.foto-tabs { display: flex; margin-bottom: 12px; border: 1.5px solid var(--text-primary); border-radius: 2px; overflow: hidden; }
 .foto-tab {
-  flex: 1; padding: 8px; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
-  background: var(--input-bg); color: var(--text-muted); border: none; cursor: pointer;
-  font-family: 'Inter', sans-serif; transition: var(--trans);
+  flex: 1; padding: 9px 8px; font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+  background: transparent; color: var(--text-muted); border: none; cursor: pointer;
+  font-family: var(--font-body); transition: all .15s var(--ease);
 }
-.foto-tab.active { background: var(--bg-secondary); color: var(--epic-red); font-weight: 700; }
+.foto-tab:hover { color: var(--text-primary); }
+.foto-tab.active { background: var(--epic-red); color: var(--epic-white); font-weight: 700; }
 
 /* ── Figma gallery ── */
 .figma-gallery {
@@ -429,16 +478,22 @@ header {
 .drop-msg  { font-size: 10px; color: var(--text-muted); }
 .drop-name { font-size: 9px; color: var(--epic-red); margin-top: 3px; font-weight: 700; }
 
-/* ── Tool buttons ── */
+/* ── Tool buttons (EPIC secondary: transparente + ink border, hover red brutalist) ── */
 .tools-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .tool-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 5px; padding: 12px 6px; background: var(--input-bg); border: 1px solid var(--border-color);
-  border-radius: 8px; cursor: pointer; transition: var(--trans); color: var(--text-muted);
-  font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; font-family: 'Inter', sans-serif;
+  gap: 5px; padding: 12px 6px; background: transparent; border: 1.5px solid var(--text-primary);
+  border-radius: 2px; cursor: pointer; transition: all .15s var(--ease); color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
 }
-.tool-btn:hover { border-color: var(--epic-red); color: var(--epic-red); }
-.tool-btn.active { border-color: var(--epic-red); color: var(--epic-red); background: rgba(255,0,80,0.04); }
+.tool-btn:hover {
+  background: var(--text-primary); color: var(--bg-primary);
+  border-color: var(--text-primary);
+  box-shadow: var(--shadow-brutal);
+  transform: translate(-2px, -2px);
+}
+.tool-btn.active { background: var(--epic-red); color: var(--epic-white); border-color: var(--epic-red); }
 .tool-btn svg { width: 18px; height: 18px; }
 
 /* ── Sliders ── */
@@ -456,31 +511,46 @@ header {
 /* offset-grid removida — Offset X/Y não mais visível na UI */
 
 .btn-reset {
-  background: none; border: 1px solid var(--border-color); color: var(--text-muted);
-  border-radius: 8px; padding: 7px 10px; font-size: 8px; letter-spacing: 1.5px;
-  text-transform: uppercase; cursor: pointer; font-family: 'Inter', sans-serif;
-  transition: var(--trans); width: 100%; margin-top: 10px;
+  background: transparent; border: 1.5px solid var(--text-primary); color: var(--text-primary);
+  border-radius: 2px; padding: 8px 10px; font-size: 9px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; cursor: pointer; font-family: var(--font-body);
+  transition: all .15s var(--ease); width: 100%; margin-top: 10px;
 }
-.btn-reset:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+.btn-reset:hover {
+  background: var(--text-primary); color: var(--bg-primary);
+  box-shadow: var(--shadow-brutal);
+  transform: translate(-2px, -2px);
+}
 
-/* ── Export buttons ── */
+/* ── Export buttons (EPIC primary: red bg → hover ink + brutalist shadow + translate) ── */
 .btn-render {
-  width: 100%; padding: 14px; background: var(--epic-red); color: #fff;
-  font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
-  border: none; border-radius: 12px; cursor: pointer; transition: var(--trans);
-  font-family: 'Inter', sans-serif;
+  width: 100%; padding: 14px; background: var(--epic-red); color: var(--epic-white);
+  font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+  border: 1.5px solid var(--epic-red); border-radius: 2px; cursor: pointer;
+  transition: all .15s var(--ease);
+  font-family: var(--font-body);
 }
-.btn-render:hover { background: #cc003f; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,0,80,0.25); }
-.btn-render:disabled { background: var(--bg-tertiary); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-render:hover {
+  background: var(--text-primary); color: var(--bg-primary);
+  border-color: var(--text-primary);
+  box-shadow: var(--shadow-brutal);
+  transform: translate(-2px, -2px);
+}
+.btn-render:disabled { background: var(--bg-tertiary); color: var(--text-muted); border-color: var(--border-color); cursor: not-allowed; transform: none; box-shadow: none; }
 
+/* EPIC ghost: vermelho outline, hover red bg + shadow-red */
 .btn-dl {
   display: none; width: 100%; padding: 11px; background: transparent;
-  border: 1px solid var(--epic-red); color: var(--epic-red); font-size: 10px; font-weight: 700;
-  letter-spacing: 2px; text-transform: uppercase; border-radius: 12px; cursor: pointer;
-  text-decoration: none; text-align: center; transition: var(--trans);
-  font-family: 'Inter', sans-serif; margin-top: 8px;
+  border: 1.5px solid var(--epic-red); color: var(--epic-red); font-size: 10px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase; border-radius: 2px; cursor: pointer;
+  text-decoration: none; text-align: center; transition: all .15s var(--ease);
+  margin-top: 8px;
 }
-.btn-dl:hover { background: var(--epic-red); color: #fff; box-shadow: 0 8px 24px rgba(255,0,80,0.25); }
+.btn-dl:hover {
+  background: var(--epic-red); color: var(--epic-white);
+  box-shadow: var(--shadow-red);
+  transform: translate(-2px, -2px);
+}
 .btn-dl.show { display: block; }
 /* Fix A — input de nome do arquivo */
 .nome-arquivo-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
@@ -954,7 +1024,7 @@ canvas { display: block; width: 100%; height: auto; }
   <button class="mobile-only" id="btnHamburger" onclick="_menuAbrir()">☰</button>
   <div class="logo-area">
     <h1>Banner Creator<span>.</span></h1>
-    <p>EPIC Digital · <span style="opacity:.5">v39</span></p>
+    <p>EPIC Digital · <span style="opacity:.5">v40</span></p>
   </div>
   <!-- Seletor de cliente centralizado no header — apenas desktop -->
   <select id="clienteSelect" class="desktop-only" onchange="onClienteChange()"
@@ -1313,17 +1383,14 @@ function toggleTheme() {
   if (btn) btn.textContent = isDark ? '🌙' : '☀️';
   try { localStorage.setItem('epic-theme', isDark ? 'light' : 'dark'); } catch(e) {}
 }
-// Restaura tema salvo (mobile: padrão escuro)
+// Restaura tema salvo (padrão: DARK em qualquer viewport — v40 EPIC Design Kit)
 (function() {
   try {
     const saved = localStorage.getItem('epic-theme');
-    const isMobile = window.innerWidth <= 600;
-    const tema = saved || (isMobile ? 'dark' : null);
-    if (tema) {
-      document.documentElement.setAttribute('data-theme', tema);
-      const btn = document.getElementById('themeToggle');
-      if (btn) btn.textContent = tema === 'dark' ? '☀️' : '🌙';
-    }
+    const tema = saved || 'dark';
+    document.documentElement.setAttribute('data-theme', tema);
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = tema === 'dark' ? '☀️' : '🌙';
   } catch(e) {}
 })();
 
